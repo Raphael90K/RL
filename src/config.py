@@ -1,5 +1,5 @@
 config = {
-    "episodes": 200,
+    "episodes": 1000,
     "gamma": 0.99,
     "learning_rate": 1e-4,
     "target_update_freq": 10,

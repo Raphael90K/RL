@@ -39,7 +39,7 @@ class RNDModel(nn.Module):
         self.optimizer = torch.optim.Adam(self.predictor.parameters(), lr=1e-4)
 
     def compute_intrinsic_reward(self, obs):
-        obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).float().to(self.device) / 255.0
+        obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).float().to(self.device)
         with torch.no_grad():
             target_feat = self.target(obs_tensor)
         pred_feat = self.predictor(obs_tensor)
@@ -47,7 +47,7 @@ class RNDModel(nn.Module):
         return reward
 
     def update(self, obs):
-        obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).float().to(self.device) / 255.0
+        obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).float().to(self.device)
         with torch.no_grad():
             target_feat = self.target(obs_tensor)
         pred_feat = self.predictor(obs_tensor)
