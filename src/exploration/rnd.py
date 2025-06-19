@@ -43,7 +43,7 @@ class RNDModel(nn.Module):
         with torch.no_grad():
             target_feat = self.target(obs_tensor)
         pred_feat = self.predictor(obs_tensor)
-        reward = F.mse_loss(pred_feat, target_feat, reduction='mean').item() * 100.0
+        reward = F.mse_loss(pred_feat, target_feat, reduction='mean').item()
         return reward
 
     def update(self, obs):

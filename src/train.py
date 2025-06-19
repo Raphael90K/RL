@@ -38,24 +38,29 @@ def train(q_net):
     optimizer = torch.optim.Adam(q_net.parameters(), lr=config["learning_rate"])
     curiosity = Curiosity(obs_shape, n_actions)
 
+    epsilon = config["epsilon_start"]
+
     for episode in range(config["episodes"]):
         extrinsic_total = 0
         intrinsic_total = 0
 
         obs, _ = env.reset()
-
         done = False
 
         while not done:
             obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).float().to(device)
-            with torch.no_grad():
-                q_values = q_net(obs_tensor).squeeze(0)
 
-            action = torch.argmax(q_values).item()
+            if torch.rand(1).item() < epsilon:
+                action = env.action_space.sample()  # Zufällige Aktion (Exploration)
+            else:
+                with torch.no_grad():
+                    q_values = q_net(obs_tensor).squeeze(0)
+                action = torch.argmax(q_values).item()  # Beste Aktion (Exploitation)
+
             next_obs, reward, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
 
-            use_intrinsic = episode < config.get("curiosity_episodes", 100)
+            use_intrinsic = config["curiosity_episodes"] is None or episode < config["curiosity_episodes"]
 
             if use_intrinsic:
                 intrinsic_reward = curiosity.compute_intrinsic_reward(obs, next_obs, action)
@@ -63,7 +68,8 @@ def train(q_net):
             else:
                 intrinsic_reward = 0.0
 
-            combined_reward = reward + intrinsic_reward
+            beta = config.get("intrinsic_beta")  # z. B. 5 % Gewicht
+            combined_reward = reward + beta * intrinsic_reward
 
             train_step(q_net, target_q_net, optimizer, obs, action, combined_reward, next_obs, done, config["gamma"])
 
@@ -71,10 +77,13 @@ def train(q_net):
             intrinsic_total += intrinsic_reward
             obs = next_obs
 
+        epsilon = max(config["epsilon_end"], epsilon * config["epsilon_decay"])
+
         if episode % config["target_update_freq"] == 0:
             target_q_net.load_state_dict(q_net.state_dict())
 
-        print(f"Episode {episode} - Total: {extrinsic_total + intrinsic_total:.2f} | Ext: {extrinsic_total:.2f} | Int: {intrinsic_total:.2f}")
+        print(f"Episode {episode} - Total: {extrinsic_total + intrinsic_total:.2f} | Ext: {extrinsic_total:.2f} | Int: {intrinsic_total:.2f} | Epsilon: {epsilon:.3f}")
+
 
 def evaluate_agent(q_net):
     eval_env = make_four_rooms_env(render_mode="human")
