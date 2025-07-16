@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from base_exploration import CuriosityModule
+from .base_exploration import CuriosityModule
 
 class ICM(nn.Module):
     def __init__(self, input_shape, num_actions):
@@ -14,8 +14,8 @@ class ICM(nn.Module):
             nn.Conv2d(c, 32, 3, stride=2), nn.ReLU(),
             nn.Conv2d(32, 64, 3, stride=2), nn.ReLU(),
             nn.Flatten(),
-        )
-        dummy = self.encoder(torch.zeros(1, *input_shape))
+        ).to(self.device)
+        dummy = self.encoder(torch.zeros(1, *input_shape).to(self.device))
         self.feature_dim = dummy.shape[1]
 
         self.inverse_model = nn.Sequential(

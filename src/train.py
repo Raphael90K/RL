@@ -1,4 +1,7 @@
 # train.py
+import random
+
+import numpy as np
 import torch
 import torch.nn.functional as F
 from env.env import make_four_rooms_env
@@ -6,8 +9,9 @@ from agent.agent import QNetwork
 from config import config
 
 # Austauschbar:
-# from exploration.icm import ICMWrapper as Curiosity
+#from exploration.icm import ICMWrapper as Curiosity
 from exploration.rnd import RNDWrapper as Curiosity
+#from exploration.byol import BYOLWrapper as Curiosity
 
 
 device = torch.device("cuda")
@@ -51,7 +55,13 @@ def train(q_net):
             with torch.no_grad():
                 q_values = q_net(obs_tensor).squeeze(0)
 
-            action = torch.argmax(q_values).item()
+            epsilon = max(0.01, 0.9 - episode / 1000)
+
+            if random.random() < epsilon:
+                action = np.random.choice(range(n_actions))
+            else:
+                action = torch.argmax(q_values).item()
+
             next_obs, reward, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
 
@@ -62,6 +72,8 @@ def train(q_net):
                 curiosity.update(obs, next_obs, action)
             else:
                 intrinsic_reward = 0.0
+
+            intrinsic_reward = np.clip(intrinsic_reward, 0, 1)
 
             combined_reward = reward + intrinsic_reward
 
@@ -74,7 +86,7 @@ def train(q_net):
         if episode % config["target_update_freq"] == 0:
             target_q_net.load_state_dict(q_net.state_dict())
 
-        print(f"Episode {episode} - Total: {extrinsic_total + intrinsic_total:.2f} | Ext: {extrinsic_total:.2f} | Int: {intrinsic_total:.2f}")
+        print(f"Episode {episode} - Total: {extrinsic_total + intrinsic_total:.2f} | Ext: {extrinsic_total:.2f} | Int: {intrinsic_total:.2f} | ε: {epsilon:.2f}")
 
 def evaluate_agent(q_net):
     eval_env = make_four_rooms_env(render_mode="human")
@@ -98,7 +110,8 @@ def evaluate_agent(q_net):
 
 if __name__ == "__main__":
     env = make_four_rooms_env(max_steps=config["max_steps"])
-    h,w,c = env.observation_space.shape  # OneHot liefert bereits (C, H, W)
+    print(env.observation_space.shape)
+    h,w,c = env.observation_space.shape
     obs_shape = (c, h, w)
     print("Observation Shape: ", env.observation_space.shape)
     n_actions = 3

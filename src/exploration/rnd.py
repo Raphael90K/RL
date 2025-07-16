@@ -6,7 +6,7 @@ from .base_exploration import CuriosityModule
 class RNDModel(nn.Module):
     def __init__(self, input_shape, output_size=32):
         super().__init__()
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda')
         c, h, w = input_shape
 
         temp_encoder = nn.Sequential(
