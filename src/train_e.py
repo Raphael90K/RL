@@ -90,7 +90,7 @@ def evaluate_agent(q_net):
 
 
 if __name__ == "__main__":
-    env = make_four_rooms_env(max_episode_steps=config["max_steps"])
+    env = make_four_rooms_env(max_steps=config["max_steps"])
     h, w, c = env.observation_space.shape
     obs_shape = (c, h, w)
     print("Observation Shape:", env.observation_space.shape)
