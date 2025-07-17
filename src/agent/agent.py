@@ -10,7 +10,7 @@ class QNetwork(nn.Module):
         c, h, w = input_shape
 
         self.encoder = nn.Sequential(
-            nn.Conv2d(c, 8, kernel_size=3, padding=1),  # (C, 7, 7)
+            nn.Conv2d(c, 16, kernel_size=3, padding=1),  # (C, 7, 7)
             nn.ReLU(),
             nn.Flatten()
         )
