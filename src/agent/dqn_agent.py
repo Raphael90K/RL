@@ -1,7 +1,7 @@
 import torch
 import numpy as np
-from src.agent.agent import QNetwork
-from src.config import config
+from agent.agent import QNetwork
+from config import config
 
 
 class DQNAgent:

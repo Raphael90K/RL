@@ -1,4 +1,4 @@
-from src.exploration.base_exploration import CuriosityModule
+from exploration.base_exploration import CuriosityModule
 
 
 class NoCuriosity (CuriosityModule):

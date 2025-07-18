@@ -1,5 +1,4 @@
 import numpy as np
-from env.env import make_four_rooms_env
 from config import config
 import torch
 
@@ -12,7 +11,7 @@ def train(agent, curiosity, env, method_name):
         intrinsic_total = 0
         obs, _ = env.reset()
         done = False
-        epsilon = max(0.01, 0.9 - episode / 1000)
+        epsilon = max(0.01, 0.9 - episode / config["curiosity_episodes"])
 
         while not done:
             action = agent.act(obs, epsilon)
