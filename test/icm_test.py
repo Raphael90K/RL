@@ -69,7 +69,7 @@ intrinsic_reward_scale = 1
 clip_epsilon = 0.2
 ppo_epochs = 4
 temperature = 1
-epochs = 50
+epochs = 100
 max_steps = 500
 
 # --- Environment
@@ -96,6 +96,7 @@ global_max = float('-inf')
 # --- Training Loop
 for episode in range(epochs):
     obs, _ = env.reset(seed=seed)
+    env.unwrapped.agent_pos = (np.random.randint(1, width-1), np.random.randint(1, height-1))  # Random start position
     obs_img = torch.tensor(obs['image'], dtype=torch.float32, device=device) / 255.0  # Normiere RGB [0-1]
     obs_img = obs_img.unsqueeze(0)
     agent_pos = env.unwrapped.agent_pos
