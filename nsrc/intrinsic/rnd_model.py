@@ -17,7 +17,7 @@ class RNDConvModel(nn.Module):
             nn.Conv2d(32, 64, 5, stride=2),
             nn.LeakyReLU(),
             nn.Flatten(),
-            nn.Linear(64 * 4 * 4, output_dim)
+            nn.Linear(64 * 16 * 16, output_dim)
         )
 
         self.predictor = nn.Sequential(
@@ -26,7 +26,7 @@ class RNDConvModel(nn.Module):
             nn.Conv2d(8, 16, 5, stride=2),
             nn.LeakyReLU(),
             nn.Flatten(),
-            nn.Linear(16 * 11 * 11, output_dim)
+            nn.Linear(16 * 35 * 35, output_dim)
         )
         for param in self.target.parameters():
             param.requires_grad = False

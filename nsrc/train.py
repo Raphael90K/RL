@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     # ----------------- ENV SETUP --------------------
     env = gym.make("MiniGrid-FourRooms-v0", render_mode=None, max_steps=64)
-    env = RGBImgPartialObsWrapper(env)
+    env = RGBImgObsWrapper(env)
     env = ImgObsWrapper(env)
     act_env = SaveActionWrapper(env)
     obs_env = SaveObsWrapper(act_env)  # Save observations for RND

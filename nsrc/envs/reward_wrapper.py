@@ -32,12 +32,6 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
 
         action = self.act_env.last_action
 
-        plt.imshow(obs)
-        plt.show()
-
-        plt.imshow(next_obs)
-        plt.show()
-
         stacked_obs = np.concatenate(list(self.frames), axis=2)  # (H, W, C*stack)
 
         obs_tensor = torch.tensor(stacked_obs.astype(np.float32) / 255.0)
