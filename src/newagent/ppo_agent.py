@@ -72,24 +72,22 @@ class ActorCriticSeparate(nn.Module):
 
 
 class RNDNet(nn.Module):
-    def __init__(self, feature_dim=256):
+    def __init__(self, out_dim=64):
         super().__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(3, 16, 3, stride=1), nn.ReLU(),
-            nn.Conv2d(16, 32, 3, stride=1), nn.ReLU(),
+            nn.Conv2d(3, 16, 3, stride=1, padding=1), nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(32 * 52 * 52, 256), nn.ReLU()
+            nn.Linear(56 * 56 * 16, 128), nn.ReLU()
         )
-        self.target = nn.Sequential(nn.Linear(256, feature_dim))
-        self.predictor = nn.Sequential(nn.Linear(256, 256), nn.ReLU(), nn.Linear(256, feature_dim))
+        self.target = nn.Sequential(nn.Linear(128, out_dim))
+        self.predictor = nn.Sequential(nn.Linear(128, 128), nn.ReLU(), nn.Linear(128, out_dim))
         for param in self.target.parameters():
             param.requires_grad = False
 
     def forward(self, x):
-        x = x / 255.0
-        conv = self.conv(x)
-        target_out = self.target(conv)
-        pred_out = self.predictor(conv)
+        features = self.conv(x)
+        target_out = self.target(features)
+        pred_out = self.predictor(features)
         return target_out, pred_out
 
 
@@ -125,8 +123,8 @@ def main():
     ppo_epochs = 4
     clip_eps = 0.2
     total_updates = 1000
+    steps_per_env = 150
 
-    episodes_per_env = [0] * num_envs
     obs, _ = envs.reset()
     obs = torch.tensor(obs["image"], dtype=torch.float32).permute(0, 3, 1, 2).to(device)
     episode_rewards = deque(maxlen=100)
@@ -138,7 +136,7 @@ def main():
         ext_values_buffer, int_values_buffer = [], []
         done_buffer, images_rnd_buffer = [], []
 
-        while not all(count >= 10 for count in episodes_per_env):
+        for _ in range(steps_per_env):
             logits, ext_value, int_value = ppo_model(obs)
             dist = torch.distributions.Categorical(logits=logits)
             action = dist.sample()
@@ -146,6 +144,7 @@ def main():
 
             next_obs, reward, terminated, truncated, infos = envs.step(action.cpu().numpy())
             done = np.logical_or(terminated, truncated)
+
             next_obs_img = torch.tensor(next_obs["image"], dtype=torch.float32).permute(0, 3, 1, 2).to(device)
 
             with torch.no_grad():
@@ -164,7 +163,6 @@ def main():
 
             for i, info in enumerate(infos):
                 if "episode" in info:
-                    episodes_per_env[i] += 1
                     episode_rewards.append(info["episode"]["r"])
 
             obs = next_obs_img
@@ -206,7 +204,6 @@ def main():
         for _ in range(ppo_epochs):
             np.random.shuffle(indices)
             for start in range(0, batch_size, mini_batch_size):
-                print(f"PPO Batch Size: {batch_size}, Mini-Batches of {mini_batch_size}")
                 end = start + mini_batch_size
                 mb_idx = indices[start:end]
 
@@ -239,10 +236,10 @@ def main():
         optimizer_rnd.step()
 
         update += 1
-        episodes_per_env = [0] * num_envs
 
         print(f"Update {update}")
         print(f"Mean extrinsic reward: {np.mean(episode_rewards) if episode_rewards else 0:.4f}")
+        print(f"Mean intrinsic reward: {np.mean(int_rewards_buffer):.4f}")
         print(f"RND Loss: {rnd_loss.item():.4f}")
 
         if update % 100 == 0:

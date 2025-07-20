@@ -41,7 +41,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # --- Load trained model
 model = CNNLSTMActorCritic(action_dim).to(device)
-model.load_state_dict(torch.load("../models/700_ppo.pth", map_location=device))
+model.load_state_dict(torch.load("../models/300_ppo.pth", map_location=device))
 model.eval()
 
 # --- Greedy Evaluation
