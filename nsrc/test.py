@@ -3,11 +3,24 @@ import numpy as np
 from minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper
 from sb3_contrib import RecurrentPPO
 
-model = RecurrentPPO.load("ppo_recurrent")
+from torch.distributions import OneHotCategoricalStraightThrough
 
-env = gym.make("MiniGrid-Empty-Random-6x6-v0", render_mode='human')
-env = RGBImgPartialObsWrapper(env)  # Convert to RGB image observation
+from nsrc.intrinsic.rnd_model import RNDConvModel
+
+model = RecurrentPPO.load("ppo_recurrent_rnd")
+# ----------------- RND SETUP --------------------
+obs_shape = (3, 7, 7)
+rnd_model = RNDConvModel(obs_shape)
+obs_buffer = []  # Buffer to store observations for RND updates
+
+
+env = gym.make("MiniGrid-Empty-Random-6x6-v0", render_mode='human', max_steps=50)
+env = OneHotCategoricalStraightThrough(env)
 env = ImgObsWrapper(env)
+env.action_space = gym.spaces.discrete.Discrete(3)
+
+print(env.action_space)
+
 model.set_env(env)
 vec_env = model.get_env()
 
