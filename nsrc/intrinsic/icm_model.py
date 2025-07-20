@@ -7,7 +7,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 
 
 class ICMModel(nn.Module):
-    def __init__(self, obs_shape, action_dim, feature_dim=256):
+    def __init__(self, obs_shape, obs_buffer, next_obs_buffer, action_buffer, action_dim, feature_dim=256):
         super().__init__()
         c, h, w = obs_shape
         self.feature = nn.Sequential(
@@ -29,12 +29,22 @@ class ICMModel(nn.Module):
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
                 nn.init.orthogonal_(m.weight, gain=1.0)
 
+        self.action_dim = action_dim
+        self.obs_buffer = obs_buffer
+        self.next_obs_buffer = next_obs_buffer
+        self.action_buffer = action_buffer
+
     def forward(self, obs, next_obs, action):
         phi = self.feature(obs)
         phi_next = self.feature(next_obs)
         inp = torch.cat([phi, action], dim=1)
         phi_next_pred = self.forward_model(inp)
         return phi_next, phi_next_pred
+
+    def compute_intrinsic_reward(self, obs, next_obs, action):
+        pred, target = self.forward(obs, next_obs, action)
+        intrinsic_reward = (pred - target.detach()).pow(2).mean(dim=1)
+        return intrinsic_reward.detach()
 
 
 class ICMUpdateCallback(BaseCallback):

@@ -2,7 +2,7 @@ import gymnasium as gym
 from datetime import datetime
 
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.vec_env import VecFrameStack
+from stable_baselines3.common.vec_env import VecFrameStack, DummyVecEnv
 from sb3_contrib import RecurrentPPO
 from nsrc.intrinsic.byol_model import BYOLModel, BYOLUpdateCallback
 from nsrc.envs.reward_wrapper import IntrinsicRewardWrapper
@@ -18,9 +18,8 @@ def train_byol():
     byol_model = BYOLModel(obs_shape)
 
     env = make_env()
-    env = IntrinsicRewardWrapper(env, byol_model, beta=1.0, obs_buffer=obs_buffer)
-    env = Monitor(env)
-    env = VecFrameStack(env, n_stack=4)
+    reward_env = IntrinsicRewardWrapper(env, byol_model, beta=1.0, obs_buffer=obs_buffer)  # Wrap the environment with intrinsic rewards
+    env = DummyVecEnv([lambda : Monitor(reward_env)])
 
     model = RecurrentPPO(
         "CnnLstmPolicy",
@@ -29,6 +28,6 @@ def train_byol():
         tensorboard_log="./ppo_rnd_tensorboard/BYOL",
         device="cuda"
     )
-    callback = BYOLUpdateCallback(byol_model, obs_buffer, next_obs_buffer, "./ppo_rnd_tensorboard/BYOL", env)
-    model.learn(500_000, callback=callback, tb_log_name=f"PPO_BYOL_{datetime.now().strftime('%Y%m%d-%H%M%S')}")
+    callback = BYOLUpdateCallback(byol_model, obs_buffer, next_obs_buffer, "./ppo_rnd_tensorboard/BYOL", reward_env)
+    model.learn(5_000, callback=callback, tb_log_name=f"PPO_BYOL_{datetime.now().strftime('%Y%m%d-%H%M%S')}")
     model.save("ppo_recurrent_byol")

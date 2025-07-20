@@ -2,6 +2,7 @@ import gymnasium as gym
 import numpy as np
 from minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper, RGBImgObsWrapper
 from sb3_contrib import RecurrentPPO
+from stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack
 
 from torch.distributions import OneHotCategoricalStraightThrough
 
@@ -9,8 +10,8 @@ from nsrc.intrinsic.rnd_model import RNDConvModel
 
 model = RecurrentPPO.load("ppo_recurrent_rnd_rollout")
 # ----------------- RND SETUP --------------------
-obs_shape = (3, 7, 7)
-rnd_model = RNDConvModel(obs_shape)
+obs_shape = (24, 56, 56)
+rnd_model = RNDConvModel()
 obs_buffer = []  # Buffer to store observations for RND updates
 
 
@@ -19,10 +20,11 @@ env = RGBImgPartialObsWrapper(env)
 env = ImgObsWrapper(env)
 env.action_space = gym.spaces.discrete.Discrete(3)
 
+vec_env = DummyVecEnv([lambda: env])
+vec_env = VecFrameStack(vec_env, n_stack=8)
 print(env.action_space)
 
-model.set_env(env)
-vec_env = model.get_env()
+model.set_env(vec_env)
 
 obs = vec_env.reset()
 # cell and hidden state of the LSTM
@@ -32,6 +34,7 @@ num_envs = 1
 episode_starts = np.ones((num_envs,), dtype=bool)
 while True:
     action, lstm_states = model.predict(obs, state=lstm_states, episode_start=episode_starts, deterministic=True)
+    print(action)
     obs, rewards, dones, info = vec_env.step(action)
     episode_starts = dones
     vec_env.render("human")
