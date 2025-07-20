@@ -1,21 +1,21 @@
 import gymnasium as gym
 import numpy as np
-from minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper
+from minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper, RGBImgObsWrapper
 from sb3_contrib import RecurrentPPO
 
 from torch.distributions import OneHotCategoricalStraightThrough
 
 from nsrc.intrinsic.rnd_model import RNDConvModel
 
-model = RecurrentPPO.load("ppo_recurrent_rnd")
+model = RecurrentPPO.load("ppo_recurrent_rnd_rollout")
 # ----------------- RND SETUP --------------------
 obs_shape = (3, 7, 7)
 rnd_model = RNDConvModel(obs_shape)
 obs_buffer = []  # Buffer to store observations for RND updates
 
 
-env = gym.make("MiniGrid-Empty-Random-6x6-v0", render_mode='human', max_steps=50)
-env = OneHotCategoricalStraightThrough(env)
+env = gym.make("MiniGrid-FourRooms-v0", render_mode='human', max_steps=50)
+env = RGBImgPartialObsWrapper(env)
 env = ImgObsWrapper(env)
 env.action_space = gym.spaces.discrete.Discrete(3)
 

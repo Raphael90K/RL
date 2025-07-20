@@ -11,30 +11,32 @@ class RNDConvModel(nn.Module):
         super().__init__()
         c, h, w = obs_shape
         self.target = nn.Sequential(
-            nn.Conv2d(3, 16, 3, stride=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2),
-            nn.Conv2d(16, 32, 3, stride=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2),
+            nn.Conv2d(3, 16, 3, stride=1, padding=1),
+            nn.LeakyReLU(),
+            nn.Conv2d(16, 32, 3, stride=2),
+            nn.LeakyReLU(),
+            nn.Conv2d(32, 64, 3, stride=2),
+            nn.LeakyReLU(),
             nn.Flatten(),
-            nn.Linear(32 * 12 * 12, output_dim)
+            nn.Linear(64 * 13 * 13, output_dim)
         )
 
         self.predictor = nn.Sequential(
-            nn.Conv2d(3, 16, 3, stride=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2),
-            nn.Conv2d(16, 32, 3, stride=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2),
+            nn.Conv2d(3, 16, 5, stride=2),
+            nn.LeakyReLU(),
+            nn.Conv2d(16, 32, 5, stride=2),
+            nn.LeakyReLU(),
             nn.Flatten(),
-            nn.Linear(32 * 12 * 12, output_dim)
+            nn.Linear(32 * 11 * 11, output_dim)
         )
         for param in self.target.parameters():
             param.requires_grad = False
+        for m in self.target.modules():
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+                nn.init.orthogonal_(m.weight, gain=1.0)
 
     def forward(self, obs):
+
         with torch.no_grad():
             target_feature = self.target(obs)
         predictor_feature = self.predictor(obs)
@@ -48,20 +50,32 @@ class RNDConvModel(nn.Module):
 
 # ----------------- RND UPDATE CALLBACK -----------------
 class RNDUpdateCallback(BaseCallback):
-    def __init__(self, rnd_model, obs_buffer, lr=1e-5, verbose=0):
+    def __init__(self, rnd_model, obs_buffer, log_dir, reward_wrapper, lr=1e-5, verbose=0):
         super().__init__(verbose)
         self.rnd_model = rnd_model
         self.optimizer = optim.Adam(rnd_model.predictor.parameters(), lr=lr)
         self.obs_buffer = obs_buffer
-        self.writer = SummaryWriter()
+        self.reward_wrapper = reward_wrapper
+
+        self.writer = SummaryWriter(log_dir=log_dir)
 
     def _on_step(self) -> bool:
         return True  # Pflicht-Implementierung, aber hier egal.
 
     def _on_rollout_end(self):
+        self.count = 50_000
         if len(self.obs_buffer) == 0:
             print("no observations to update RND model")
             return
+        print(f"buffer length:{len(self.obs_buffer)}")
+        extrinsic_mean = np.mean(self.reward_wrapper.extrinsic_rewards)
+        intrinsic_mean = np.mean(self.reward_wrapper.intrinsic_rewards)
+
+        self.writer.add_scalar('rnd/extrinsic_mean', extrinsic_mean, self.num_timesteps)
+        self.writer.add_scalar('rnd/intrinsic_mean', intrinsic_mean, self.num_timesteps)
+
+        self.reward_wrapper.reset_reward_buffers()
+
         obs_batch = torch.tensor(np.stack(self.obs_buffer), dtype=torch.float32)
         obs_batch = obs_batch.permute(0, 3, 1, 2)
         pred, target = self.rnd_model(obs_batch)
@@ -72,7 +86,10 @@ class RNDUpdateCallback(BaseCallback):
         self.optimizer.step()
         self.obs_buffer.clear()
         self.writer.add_scalar('rnd/loss', loss.item(), self.num_timesteps)
+        if self.num_timesteps > self.count:
+            self.count += 50_000
+            print(f'num_timesteps: {self.num_timesteps}')
+            self.model.save('ppo_recurrent_rnd_rollout')
 
     def _on_training_end(self):
         self.writer.close()
-
