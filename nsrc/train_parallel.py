@@ -1,7 +1,7 @@
 import multiprocessing as mp
-from train_rnd import train_rnd
-from train_icm import train_icm
-from train_byol import train_byol
+from train.train_rnd import train_rnd
+from train.train_icm import train_icm
+from train.train_byol import train_byol
 
 
 if __name__ == "__main__":

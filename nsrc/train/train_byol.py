@@ -14,7 +14,7 @@ def train_byol():
     obs_buffer = []
     next_obs_buffer = []
 
-    obs_shape = (3 * 4, 56, 56)
+    obs_shape = (3, 56, 56)
     byol_model = BYOLModel(obs_shape)
 
     env = make_env()
