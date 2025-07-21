@@ -25,8 +25,6 @@ class LogIntrinsicExtrinsicRewardsCallback(BaseCallback):
                 unique_positions = len(self.reward_wrapper.visited_positions)
                 self.logger.record(f"rollout/unique_positions_env_{env_idx}", unique_positions)
                 self.reward_wrapper.visited_positions.clear()
-
-
         return True
 
     def _on_training_end(self):

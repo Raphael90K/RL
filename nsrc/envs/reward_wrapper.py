@@ -2,7 +2,6 @@ from collections import deque
 import gymnasium as gym
 import numpy as np
 import torch
-from matplotlib import pyplot as plt
 
 from nsrc.config import Config
 
@@ -29,6 +28,9 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
+        if hasattr(self.model, "resets"):
+            self.model.resets.append(len(self.obs_buffer))  # Track the number of resets
+            self.model.reset_hidden_states()
         for _ in range(self.stack_size):
             self.frames.append(obs)
         return obs, info

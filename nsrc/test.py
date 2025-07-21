@@ -1,4 +1,5 @@
 import gymnasium as gym
+import matplotlib.pyplot as plt
 import numpy as np
 from minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper, RGBImgObsWrapper
 from sb3_contrib import RecurrentPPO
@@ -35,5 +36,5 @@ episode_starts = np.ones((num_envs,), dtype=bool)
 while True:
     action, lstm_states = model.predict(obs, state=lstm_states, episode_start=episode_starts, deterministic=True)
     print(action)
-    obs, rewards, dones, infos = vec_env.step(action)
+    obs, rewards, dones, infos = vec_env.step(action)  # (H, W, C) -> (C, H, W)  # Convert to numpy array and change shape to (C, H, W)
     episode_starts = dones
