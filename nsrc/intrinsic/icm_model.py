@@ -76,7 +76,6 @@ class ICMUpdateCallback(BaseCallback):
         self.obs_buffer.clear()
         self.next_obs_buffer.clear()
         self.action_buffer.clear()
-        self.reward_wrapper.reset_reward_buffers()
 
     def _on_training_end(self):
         self.writer.close()

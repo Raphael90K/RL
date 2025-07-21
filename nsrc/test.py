@@ -16,7 +16,7 @@ obs_buffer = []  # Buffer to store observations for RND updates
 
 
 env = gym.make("MiniGrid-FourRooms-v0", render_mode='human', max_steps=50)
-env = RGBImgObsWrapper(env)
+env = RGBImgPartialObsWrapper(env)
 env = ImgObsWrapper(env)
 env.action_space = gym.spaces.discrete.Discrete(3)
 vec_env = DummyVecEnv([lambda: env])  # Wrap the environment in a DummyVecEnv for vectorized operations
@@ -25,7 +25,7 @@ print(env.action_space)
 
 model.set_env(vec_env)
 
-obs = env.reset()
+obs = vec_env.reset()
 
 # cell and hidden state of the LSTM
 lstm_states = None

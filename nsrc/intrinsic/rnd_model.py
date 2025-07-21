@@ -17,7 +17,7 @@ class RNDConvModel(nn.Module):
             nn.Conv2d(32, 64, 5, stride=2),
             nn.LeakyReLU(),
             nn.Flatten(),
-            nn.Linear(64 * 16 * 16, output_dim)
+            nn.Linear(64 * 4 * 4, output_dim)
         )
 
         self.predictor = nn.Sequential(
@@ -26,7 +26,7 @@ class RNDConvModel(nn.Module):
             nn.Conv2d(8, 16, 5, stride=2),
             nn.LeakyReLU(),
             nn.Flatten(),
-            nn.Linear(16 * 35 * 35, output_dim)
+            nn.Linear(16 * 11 * 11, output_dim)
         )
         for param in self.target.parameters():
             param.requires_grad = False
@@ -57,8 +57,8 @@ class RNDUpdateCallback(BaseCallback):
         self.obs_buffer = obs_buffer
         self.reward_wrapper = reward_wrapper
         self.count = 50_000
-
         self.writer = SummaryWriter(log_dir=log_dir)
+
 
     def _on_step(self) -> bool:
         return True  # Pflicht-Implementierung, aber hier egal.
@@ -68,13 +68,7 @@ class RNDUpdateCallback(BaseCallback):
         if len(self.obs_buffer) == 0:
             print("no observations to update RND model")
             return
-        extrinsic_mean = np.mean(self.reward_wrapper.extrinsic_rewards)
-        intrinsic_mean = np.mean(self.reward_wrapper.intrinsic_rewards)
 
-        self.writer.add_scalar('rnd/extrinsic_mean', extrinsic_mean, self.num_timesteps)
-        self.writer.add_scalar('rnd/intrinsic_mean', intrinsic_mean, self.num_timesteps)
-
-        self.reward_wrapper.reset_reward_buffers()
 
         obs_batch = torch.tensor(np.stack(self.obs_buffer), dtype=torch.float32)
         obs_batch = obs_batch.permute(0, 3, 1, 2)
@@ -86,11 +80,5 @@ class RNDUpdateCallback(BaseCallback):
         loss.backward()
         self.optimizer.step()
         self.obs_buffer.clear()
-        self.writer.add_scalar('rnd/loss', loss.item(), self.num_timesteps)
-        if self.num_timesteps > self.count:
-            self.count += 50_000
-            print(f'num_timesteps: {self.num_timesteps}')
-            self.model.save('ppo_recurrent_rnd_rollout')
+        self.logger.record('rollout/rnd_loss', loss.item())
 
-    def _on_training_end(self):
-        self.writer.close()

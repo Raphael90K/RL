@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -76,7 +77,6 @@ class BYOLUpdateCallback(BaseCallback):
         self.writer.add_scalar('byol/loss', loss.item(), self.num_timesteps)
         self.obs_buffer.clear()
         self.next_obs_buffer.clear()
-        self.reward_wrapper.reset_reward_buffers()
 
     def _on_training_end(self):
         self.writer.close()
