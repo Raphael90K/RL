@@ -17,8 +17,8 @@ time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 if __name__ == "__main__":
     # ----------------- RND SETUP --------------------
     obs_shape = (3, 56, 56)
-    rnd_model = RNDConvModel()
     obs_buffer = []  # Buffer to store observations for RND updates
+    rnd_model = RNDConvModel(obs_buffer)
 
     # ----------------- ENV SETUP --------------------
     env = gym.make("MiniGrid-FourRooms-v0", render_mode=None, max_steps=128)
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     env = ImgObsWrapper(env)
     act_env = SaveActionWrapper(env)
     obs_env = SaveObsWrapper(act_env)  # Save observations for RND
-    env_reward = IntrinsicRewardWrapper(obs_env, act_env, rnd_model,obs_buffer, beta=1.0,
+    env_reward = IntrinsicRewardWrapper(obs_env, act_env, rnd_model, beta=1.0,
                                         frame_stack_size=4, norm=True)
     env = Monitor(env_reward, f'log/RND_PPO_{time}')  # Monitor to track rewards and other metrics
     env.action_space = gym.spaces.discrete.Discrete(3)  # Set action space to Discrete(3) for the environment
@@ -47,6 +47,6 @@ if __name__ == "__main__":
 
     # ----------------- TRAINING -----------------
 
-    callback = RNDUpdateCallback(rnd_model, obs_buffer, f'./ppo_rnd_tensorboard/RND{time}', env_reward, lr=1e-5)
+    callback = RNDUpdateCallback(rnd_model, f'./ppo_rnd_tensorboard/RND{time}', env_reward, lr=1e-5)
     model.learn(5_000_000, callback=callback, tb_log_name=f"PPO{time}")
     model.save("ppo_recurrent_rnd")

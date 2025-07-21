@@ -11,8 +11,8 @@ from nsrc.intrinsic.rnd_model import RNDConvModel
 model = RecurrentPPO.load("ppo_recurrent_rnd_rollout")
 # ----------------- RND SETUP --------------------
 obs_shape = (24, 56, 56)
-rnd_model = RNDConvModel()
 obs_buffer = []  # Buffer to store observations for RND updates
+rnd_model = RNDConvModel(obs_buffer)
 
 
 env = gym.make("MiniGrid-FourRooms-v0", render_mode='human', max_steps=50)

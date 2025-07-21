@@ -11,6 +11,7 @@ class Config:
     max_steps: int = 128
     verbose: int = 1
     save_freqency: int = 100_000
+    num_envs: int = 1
 
     # PPO configuration
     model_lr: float = 3e-4
@@ -27,7 +28,12 @@ class Config:
     frame_stack_size: int = 4
     beta_intrinsic: float = 1
     norm_intrinsic: bool = True
+    action_dim: int = 3
 
     # RND configuration
     rnd_lr: float = 1e-5
 
+    # ICM configuration
+
+    # BYOL configuration
+    ema_decay:float = 0.99
