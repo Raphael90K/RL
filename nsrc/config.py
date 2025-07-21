@@ -15,8 +15,8 @@ class Config:
 
     # PPO configuration
     model_lr: float = 3e-4
-    batch_size: int = 256
-    n_steps: int = 1024
+    batch_size: int = 128
+    n_steps: int = 512
     n_epochs: int = 5
     ent_coef: float = 0.05
     clip_range: float = 0.2

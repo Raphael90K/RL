@@ -42,7 +42,7 @@ def train_rnd(cfg: Config):
 
     )
     ### Callbacks
-    update_callback = RNDUpdateCallback(rnd_model, reward_env)
+    update_callback = RNDUpdateCallback(rnd_model)
     log_reward_callback = LogIntrinsicExtrinsicRewardsCallback(reward_env)
     save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}', name_prefix=f"{name}_checkpoint")
 
