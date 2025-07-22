@@ -3,9 +3,6 @@ import torch
 import torch.nn as nn
 from stable_baselines3.common.callbacks import BaseCallback
 from torch import optim, device
-from torch.utils.tensorboard import SummaryWriter
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class RNDConvModel(nn.Module):
     def __init__(self, obs_buffer, output_dim=256):
@@ -22,12 +19,14 @@ class RNDConvModel(nn.Module):
         )
 
         self.predictor = nn.Sequential(
-            nn.Conv2d(12, 8, 5, stride=2),
+            nn.Conv2d(12, 32, 5, stride=2, padding=1),
             nn.LeakyReLU(),
-            nn.Conv2d(8, 16, 5, stride=2),
+            nn.Conv2d(32, 32, 5, stride=2),
+            nn.LeakyReLU(),
+            nn.Conv2d(32, 64, 5, stride=2),
             nn.LeakyReLU(),
             nn.Flatten(),
-            nn.Linear(16 * 11 * 11, output_dim)
+            nn.Linear(64 * 4 * 4, output_dim)
         )
 
         for param in self.target.parameters():
@@ -37,10 +36,14 @@ class RNDConvModel(nn.Module):
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
                 nn.init.orthogonal_(m.weight, gain=1.0)
 
+        for m in self.predictor.modules():
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+                nn.init.orthogonal_(m.weight, gain=1.0)
+
         self.obs_buffer = obs_buffer
-        self.device = torch.device("cuda")
 
     def forward(self, obs):
+        device = next(self.parameters()).device
         obs = obs.to(device)
         with torch.no_grad():
             target_feature = self.target(obs)
@@ -78,7 +81,8 @@ class RNDUpdateCallback(BaseCallback):
 
         self.optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.rnd_model.predictor.parameters(), max_norm=5.0)
         self.optimizer.step()
         self.obs_buffer.clear()
-        self.logger.record('rollout/rnd_loss', loss.item())
+        self.logger.record('rnd/loss', loss.item())
 

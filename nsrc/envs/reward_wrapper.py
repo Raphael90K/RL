@@ -21,7 +21,6 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         self.frames = deque(maxlen=frame_stack_size)
         self.intrinsic_rewards = []
         self.extrinsic_rewards = []
-        self.visited_positions = set()  # Set to track visited positions for each environment
         self.obs_env = obs_env
         self.act_env = act_env
         self.norm_func = RunningMeanStdScalar() if norm else None
@@ -52,7 +51,6 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         intrinsic = self.model.compute_intrinsic_reward(obs=obs_tensor, next_obs=next_obs_tensor,
                                                         action=action).item()
 
-        self.track_position()
         self.obs_buffer.append(stacked_obs.copy())
         if self.next_obs_buffer is not None:
             self.next_obs_buffer.append(stacked_next_obs.copy())
@@ -70,10 +68,6 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
     def reset_reward_buffers(self):
         self.intrinsic_rewards = []
         self.extrinsic_rewards = []
-
-    def track_position(self):
-        self.visited_positions.add(tuple(self.env.unwrapped.agent_pos))
-
 
 class RunningMeanStdScalar:
     def __init__(self, epsilon=1e-4):

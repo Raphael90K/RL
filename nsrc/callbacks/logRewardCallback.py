@@ -21,10 +21,6 @@ class LogIntrinsicExtrinsicRewardsCallback(BaseCallback):
                 self.logger.record(f"rollout/ext_rew_episode_{env_idx}", extrinsic_sum)
                 self.logger.record(f"rollout/int_rew_episode_{env_idx}", intrinsic_sum)
                 self.reward_wrapper.reset_reward_buffers()
-
-                unique_positions = len(self.reward_wrapper.visited_positions)
-                self.logger.record(f"rollout/unique_positions_env_{env_idx}", unique_positions)
-                self.reward_wrapper.visited_positions.clear()
         return True
 
     def _on_training_end(self):

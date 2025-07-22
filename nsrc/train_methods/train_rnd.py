@@ -7,6 +7,7 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv
 from sb3_contrib import RecurrentPPO
 
+from nsrc.callbacks.uniquePositionCallback import UniquePositionCallback
 from nsrc.config import Config
 from nsrc.intrinsic.rnd_model import RNDConvModel, RNDUpdateCallback
 from nsrc.callbacks.logRewardCallback import LogIntrinsicExtrinsicRewardsCallback
@@ -43,8 +44,9 @@ def train_rnd(cfg: Config):
     )
     ### Callbacks
     update_callback = RNDUpdateCallback(rnd_model)
+    unique_pos_callback = UniquePositionCallback()
     log_reward_callback = LogIntrinsicExtrinsicRewardsCallback(reward_env)
     save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}', name_prefix=f"{name}_checkpoint")
 
-    callbacks = CallbackList([update_callback, log_reward_callback, save_callback])
+    callbacks = CallbackList([update_callback, unique_pos_callback, log_reward_callback, save_callback])
     model.learn(cfg.total_timesteps, callback=callbacks, tb_log_name=f"{datetime.now().strftime('%Y%m%d-%H%M%S')}")
