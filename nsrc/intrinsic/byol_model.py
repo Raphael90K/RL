@@ -76,6 +76,9 @@ class BYOLExploreModel(nn.Module):
             self._prev_action = action.unsqueeze(0).unsqueeze(0)
             return reward
 
+    def reset(self):
+        self._prev_action = None
+
 
 class BYOLExploreUpdateCallback(BaseCallback):
     def __init__(self, byol_model, lr=1e-4, log_dir=None, verbose=0):
