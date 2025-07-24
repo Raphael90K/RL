@@ -45,9 +45,9 @@ class BYOLExploreModel(nn.Module):
         self.obs_buffer = obs_buffer
         self.next_obs_buffer = next_obs_buffer
         self.act_buffer = act_buffer
-        self.last_action = None
 
         self.resets_flag = []
+        self._prev_action = None  # zur Zwischenspeicherung von a_{t-1}
 
     def update_target(self):
         for online_param, target_param in zip(self.online_encoder.parameters(), self.target_encoder.parameters()):
@@ -55,22 +55,25 @@ class BYOLExploreModel(nn.Module):
 
     def compute_intrinsic_reward(self, obs, next_obs, action):
         with torch.no_grad():
-            obs = obs.to(self.device)
-            next_obs = next_obs.to(self.device)
-            action = action.to(self.device)
+            if self._prev_action is None:
+                action_prev = torch.zeros_like(action).unsqueeze(0).unsqueeze(0)  # Dummy-Aktion
+            else:
+                action_prev = self._prev_action
 
             omega_t = self.online_encoder(obs)
             omega_t = omega_t.unsqueeze(1)  # [B, 1, F]
-            action = action.unsqueeze(1)   # [B, 1, A]
-            closed_input = torch.cat([omega_t, action], dim=-1)
+            closed_input = torch.cat([omega_t, action_prev], dim=-1)
             b_t, _ = self.closed_rnn(closed_input)
-            b_open, _ = self.open_rnn(action, b_t.transpose(0, 1))
+            b_open, _ = self.open_rnn(action_prev, b_t.transpose(0, 1))
             b_open = b_open.squeeze(1)
             pred = self.predictor(b_open)
             target = self.target_encoder(next_obs).detach()
             pred = F.normalize(pred, dim=-1)
             target = F.normalize(target, dim=-1)
             reward = 1 - F.cosine_similarity(pred, target, dim=-1)
+
+            # aktionsspeicher aktualisieren
+            self._prev_action = action.unsqueeze(0).unsqueeze(0)
             return reward
 
 
@@ -80,9 +83,6 @@ class BYOLExploreUpdateCallback(BaseCallback):
         self.byol_model = byol_model
         self.optimizer = optim.Adam(self.byol_model.parameters(), lr=lr)
         self.writer = SummaryWriter(log_dir=log_dir) if log_dir else None
-
-    def _on_step(self):
-        return True
 
     def _on_rollout_end(self):
         device = self.byol_model.device
@@ -124,12 +124,16 @@ class BYOLExploreUpdateCallback(BaseCallback):
 
             obs_t = obs_batch[t].unsqueeze(0)
             next_obs_t = next_obs_batch[t].unsqueeze(0)
-            act_t = actions[t].unsqueeze(0).unsqueeze(0)
+
+            if t == 0:
+                act_prev = torch.zeros_like(actions[t]).unsqueeze(0).unsqueeze(0)  # Dummy action
+            else:
+                act_prev = actions[t - 1].unsqueeze(0).unsqueeze(0)
 
             omega_t = online_encoder(obs_t).unsqueeze(1)
-            closed_input = torch.cat([omega_t, act_t], dim=-1)
+            closed_input = torch.cat([omega_t, act_prev], dim=-1)
             b_t, hidden_closed = closed_rnn(closed_input, hidden_closed)
-            b_open, _ = open_rnn(act_t, b_t.transpose(0, 1))
+            b_open, _ = open_rnn(act_prev, b_t.transpose(0, 1))
             b_open = b_open.squeeze(1)
 
             pred = predictor(b_open)
