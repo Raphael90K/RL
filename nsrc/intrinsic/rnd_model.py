@@ -9,22 +9,18 @@ class RNDConvModel(nn.Module):
         super().__init__()
         self.target = nn.Sequential(
             nn.Conv2d(12, 32, 5, stride=2, padding=1),
-            nn.LeakyReLU(),
-            nn.Conv2d(32, 32, 5, stride=2),
-            nn.LeakyReLU(),
+            nn.Tanh(),
             nn.Conv2d(32, 64, 5, stride=2),
-            nn.LeakyReLU(),
+            nn.Tanh(),
             nn.Flatten(),
             nn.Linear(64 * 4 * 4, output_dim)
         )
 
         self.predictor = nn.Sequential(
             nn.Conv2d(12, 32, 5, stride=2, padding=1),
-            nn.LeakyReLU(),
-            nn.Conv2d(32, 32, 5, stride=2),
-            nn.LeakyReLU(),
+            nn.Tanh(),
             nn.Conv2d(32, 64, 5, stride=2),
-            nn.LeakyReLU(),
+            nn.Tanh(),
             nn.Flatten(),
             nn.Linear(64 * 4 * 4, output_dim)
         )

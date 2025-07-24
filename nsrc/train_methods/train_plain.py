@@ -16,6 +16,7 @@ def train_plain(cfg):
     env = gym.make(cfg.env_name, max_steps=cfg.max_steps)
     env = RGBImgPartialObsWrapper(env)
     env = ImgObsWrapper(env)
+    env.action_space = gym.spaces.discrete.Discrete(3)
 
     model = RecurrentPPO(
         "CnnLstmPolicy",

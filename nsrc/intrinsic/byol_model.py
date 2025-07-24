@@ -40,7 +40,7 @@ class BYOLModel(nn.Module):
         for param in self.target_rnn.parameters():
             param.requires_grad = False
 
-        # Predictor Head (wie bei BYOL)
+        # Predictor Head
         self.predictor = nn.Sequential(
             nn.Linear(feature_dim, feature_dim),
             nn.ReLU(),

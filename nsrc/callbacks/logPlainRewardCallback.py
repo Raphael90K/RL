@@ -18,7 +18,7 @@ class LogExtrinsicRewardPlainCallback(BaseCallback):
 
                 # Tensorboard Logging
                 self.logger.record(f"rollout/ext_rew_episode_{env_idx}", self.extrinsic_rewards_sum)
-                self.extrinsic_rewards = 0
+                self.extrinsic_rewards_sum = 0
         return True
 
     def _on_training_end(self):
