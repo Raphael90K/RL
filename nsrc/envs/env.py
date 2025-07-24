@@ -16,5 +16,6 @@ def make_env(id, model, cfg, render_mode=None):
     reward_env = IntrinsicRewardWrapper(obs_env, act_env, model,
                                         beta=cfg.beta_intrinsic,
                                         frame_stack_size=cfg.frame_stack_size,
-                                        norm=cfg.norm_intrinsic)
+                                        norm=cfg.norm_intrinsic,
+                                        act_dim=cfg.action_dim)
     return reward_env

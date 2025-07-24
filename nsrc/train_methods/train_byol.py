@@ -8,7 +8,7 @@ from sb3_contrib import RecurrentPPO
 
 from nsrc.callbacks.logRewardCallback import LogIntrinsicExtrinsicRewardsCallback
 from nsrc.callbacks.uniquePositionCallback import UniquePositionCallback
-from nsrc.intrinsic.byol_model import BYOLModel, BYOLUpdateCallback
+from nsrc.intrinsic.byol_model import BYOLExploreModel, BYOLExploreUpdateCallback
 
 from nsrc.envs.env import make_env
 
@@ -16,9 +16,11 @@ from nsrc.envs.env import make_env
 def train_byol(cfg):
     obs_buffer = []
     next_obs_buffer = []
+    act_buffer = []
+    act_dim = 3
 
     obs_shape = (3 * cfg.frame_stack_size, 56, 56)
-    byol_model = BYOLModel(obs_shape, obs_buffer, next_obs_buffer).to(cfg.device)
+    byol_model = BYOLExploreModel(obs_shape, act_dim, obs_buffer, next_obs_buffer, act_buffer).to(cfg.device)
     name = 'BYOL'
 
     reward_env = make_env(cfg.env_name, byol_model, cfg)  # Create the environment
@@ -44,7 +46,7 @@ def train_byol(cfg):
 
     )
     ### Callbacks
-    update_callback = BYOLUpdateCallback(byol_model)
+    update_callback = BYOLExploreUpdateCallback(byol_model)
     unique_pos_callback = UniquePositionCallback()
     log_reward_callback = LogIntrinsicExtrinsicRewardsCallback(reward_env)
     save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}',

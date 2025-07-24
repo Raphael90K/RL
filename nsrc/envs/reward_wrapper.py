@@ -2,6 +2,7 @@ from collections import deque
 import gymnasium as gym
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from nsrc.config import Config
 
@@ -10,7 +11,7 @@ cfg = Config()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class IntrinsicRewardWrapper(gym.RewardWrapper):
-    def __init__(self, obs_env, act_env, model, beta=1.0, frame_stack_size=4, norm=False):
+    def __init__(self, obs_env, act_env, model, beta=1.0, frame_stack_size=4, norm=False, act_dim=3):
         super().__init__(obs_env)
         self.model = model
         self.beta = beta
@@ -23,7 +24,7 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         self.extrinsic_rewards = []
         self.obs_env = obs_env
         self.act_env = act_env
-        self.norm_func = RunningMeanStdScalar() if norm else None
+        self.norm_func = RunningEMANormalizer() if norm else None
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
@@ -41,6 +42,8 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         stacked_next_obs = np.concatenate(list(self.frames), axis=2)  # (H, W, C*stack)
 
         action = self.act_env.last_action
+        action = F.one_hot(torch.tensor(action).unsqueeze(0), num_classes=3).float()
+
 
         obs_tensor = torch.tensor(stacked_obs.astype(np.float32) / 255.0)
         obs_tensor = obs_tensor.permute(2, 0, 1).unsqueeze(0).to(device)  # (1, C*stack, H, W)
@@ -69,22 +72,26 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         self.intrinsic_rewards = []
         self.extrinsic_rewards = []
 
-class RunningMeanStdScalar:
-    def __init__(self, epsilon=1e-4):
-        self.mean = 0.0
-        self.var = 1.0
-        self.count = epsilon
+class RunningEMANormalizer:
+    def __init__(self, alpha=0.99, epsilon=1e-8):
+        self.alpha = alpha
+        self.epsilon = epsilon
+        self.ema_mean = 0.0
+        self.ema_mean_sq = 0.0
+        self.counter = 1
 
     def update(self, x):
-        # x ist ein Skalar
-        delta = x - self.mean
-        self.count += 1
-        self.mean += delta / self.count
-        delta2 = x - self.mean
-        self.var = ((self.count - 1) * self.var + delta * delta2) / self.count
+        self.counter += 1
+        self.ema_mean = self.alpha * self.ema_mean + (1 - self.alpha) * x
+        self.ema_mean_sq = self.alpha * self.ema_mean_sq + (1 - self.alpha) * (x ** 2)
 
     def std(self):
-        return (self.var ** 0.5) + 1e-8  # vermeide Division durch 0
+        mean = self.ema_mean / (1 - self.alpha ** self.counter)
+        mean_sq = self.ema_mean_sq / (1 - self.alpha ** self.counter)
+        var = max(mean_sq - mean ** 2, 0.0)
+        return (var + self.epsilon) ** 0.5
 
     def normalize(self, x):
-        return (x - self.mean) / self.std()
+        self.update(x)
+        return x / self.std()
+
