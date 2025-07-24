@@ -31,6 +31,7 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         if hasattr(self.model, "resets"):
             self.model.resets.append(len(self.obs_buffer))  # Track the number of resets
             self.model.reset_hidden_states()
+            self.model.reset_action_prev()
         for _ in range(self.stack_size):
             self.frames.append(obs)
         return obs, info
