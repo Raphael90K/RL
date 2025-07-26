@@ -17,9 +17,10 @@ from nsrc.envs.env import make_env
 
 def train_rnd(cfg: Config):
     obs_buffer = []
+    obs_shape = (3 * cfg.frame_stack_size, 56, 56)
     device = torch.device(cfg.device)
 
-    rnd_model = RNDConvModel(obs_buffer).to(device)
+    rnd_model = RNDConvModel(obs_shape, obs_buffer).to(device)
     name = 'RND'
 
     reward_env = make_env(cfg.env_name, rnd_model, cfg)  # Create the environment

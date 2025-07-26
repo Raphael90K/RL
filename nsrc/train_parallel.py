@@ -11,8 +11,8 @@ if __name__ == "__main__":
 
     processes = [
         #mp.Process(target=train_rnd, args=(cfg,)),
-        #mp.Process(target=train_icm, args=(cfg,)),
-        mp.Process(target=train_byol, args=(cfg,)),
+        mp.Process(target=train_icm, args=(cfg,)),
+        #mp.Process(target=train_byol, args=(cfg,)),
         #mp.Process(target=train_plain, args=(cfg,)),
     ]
 

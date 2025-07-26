@@ -7,22 +7,25 @@ from stable_baselines3.common.callbacks import BaseCallback
 
 
 class ICMModel(nn.Module):
-    def __init__(self, obs_shape, obs_buffer, next_obs_buffer, act_buffer, action_dim, feature_dim=256):
+    def __init__(self, obs_shape, obs_buffer, next_obs_buffer, act_buffer, action_dim, feature_dim=256, beta=0.2):
         super().__init__()
+        print(beta)
         c, h, w = obs_shape
         self.feature = nn.Sequential(
-            nn.Conv2d(c, 32, 3, stride=2, padding=1),
-            nn.ReLU(),
+            nn.Conv2d(c, 16, 3, stride=2, padding=1),
+            nn.ELU(),
+            nn.Conv2d(16, 32, 3, stride=2, padding=1),
+            nn.ELU(),
             nn.Conv2d(32, 64, 3, stride=2, padding=1),
-            nn.ReLU(),
+            nn.ELU(),
             nn.Flatten(),
-            nn.Linear(64 * (h // 4) * (w // 4), feature_dim),
-            nn.ReLU()
+            nn.Linear(64 * (h // 8) * (w // 8), feature_dim),
         )
         # Forward model
         self.forward_model = nn.Sequential(
             nn.Linear(feature_dim + action_dim, feature_dim),
             nn.ReLU(),
+            nn.Linear(feature_dim, feature_dim),
             nn.Linear(feature_dim, feature_dim)
         )
         # Inverse model
@@ -39,16 +42,18 @@ class ICMModel(nn.Module):
         self.obs_buffer = obs_buffer
         self.next_obs_buffer = next_obs_buffer
         self.act_buffer = act_buffer
+        self.beta = beta
         self.device = torch.device("cuda")
 
     def forward(self, obs, next_obs, action):
+        obs = obs.to(self.device)
+        next_obs = next_obs.to(self.device)
+        action = action.to(self.device)
+
         features_obs = self.feature(obs)
         features_next_obs = self.feature(next_obs)
-        action_onehot = torch.nn.functional.one_hot(self.to_long_tensor(action),
-                                                    num_classes=self.action_dim).float().to(self.device)
-        # Forward model predicts next features
 
-        concat_input = torch.cat([features_obs, action_onehot], dim=1)
+        concat_input = torch.cat([features_obs, action], dim=1)
         predicted_next_features = self.forward_model(concat_input)
 
         # Inverse model predicts action logits
@@ -73,7 +78,7 @@ class ICMModel(nn.Module):
         return tensor
 
 class ICMUpdateCallback(BaseCallback):
-    def __init__(self, icm_model, lr=1e-4,
+    def __init__(self, icm_model, lr=1e-3,
                  verbose=0):
         super().__init__(verbose)
         self.icm_model = icm_model
@@ -91,14 +96,18 @@ class ICMUpdateCallback(BaseCallback):
         next_obs_batch = torch.tensor(np.stack(self.next_obs_buffer), dtype=torch.float32).permute(0, 3, 1, 2).to(
             device) / 255.0
         actions = torch.tensor(np.stack(self.act_buffer), dtype=torch.long).to(device)
+        actions = actions.squeeze(1)
 
         features_obs, features_next_obs, predicted_next_features, predicted_action_logits = self.icm_model(obs_batch,
                                                                                                            next_obs_batch,
                                                                                                            actions)
-        forward_loss = 0.5 * (features_next_obs - predicted_next_features).pow(2).sum(dim=1).mean()
-        inverse_loss = nn.functional.cross_entropy(predicted_action_logits, actions)
 
-        total_loss = forward_loss + inverse_loss
+        actions_tensor = actions.argmax(dim=1).long()
+
+        forward_loss = 0.5 * (features_next_obs - predicted_next_features).pow(2).sum(dim=1).mean()
+        inverse_loss = nn.functional.cross_entropy(predicted_action_logits, actions_tensor)
+
+        total_loss = self.icm_model.beta * forward_loss + (1 - self.icm_model.beta) * inverse_loss
 
         self.optimizer.zero_grad()
         total_loss.backward()

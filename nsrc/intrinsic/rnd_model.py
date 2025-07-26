@@ -5,24 +5,30 @@ from stable_baselines3.common.callbacks import BaseCallback
 from torch import optim, device
 
 class RNDConvModel(nn.Module):
-    def __init__(self, obs_buffer, output_dim=256):
+    def __init__(self, obs_shape, obs_buffer, output_dim=256, feature_dim=256):
         super().__init__()
-        self.target = nn.Sequential(
-            nn.Conv2d(12, 32, 5, stride=2, padding=1),
-            nn.Tanh(),
-            nn.Conv2d(32, 64, 5, stride=2),
-            nn.Tanh(),
+        c, h, w = obs_shape
+        self.encoder = nn.Sequential(
+            nn.Conv2d(c, 16, 3, stride=2, padding=1),
+            nn.ELU(),
+            nn.Conv2d(16, 32, 3, stride=2, padding=1),
+            nn.ELU(),
+            nn.Conv2d(32, 64, 3, stride=2, padding=1),
+            nn.ELU(),
             nn.Flatten(),
-            nn.Linear(64 * 4 * 4, output_dim)
+            nn.Linear(64 * (h // 8) * (w // 8), feature_dim),
+        )
+
+        self.target = nn.Sequential(
+            self.encoder,
+            nn.Linear(feature_dim, output_dim)
         )
 
         self.predictor = nn.Sequential(
-            nn.Conv2d(12, 32, 5, stride=2, padding=1),
-            nn.Tanh(),
-            nn.Conv2d(32, 64, 5, stride=2),
-            nn.Tanh(),
-            nn.Flatten(),
-            nn.Linear(64 * 4 * 4, output_dim)
+            self.encoder,
+            nn.Linear(feature_dim, output_dim),
+            nn.ReLU(),
+            nn.Linear(output_dim, output_dim)
         )
 
         for param in self.target.parameters():

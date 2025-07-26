@@ -1,12 +1,11 @@
 import gymnasium as gym
-import matplotlib.pyplot as plt
 import numpy as np
 from minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper, RGBImgObsWrapper
 from sb3_contrib import RecurrentPPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 
 if __name__ == "__main__":
-    model = RecurrentPPO.load("../models/RND/RND_checkpoint_1500000_steps", device='cuda')
+    model = RecurrentPPO.load("../models/BYOL/BYOL_checkpoint_1500000_steps.zip", device='cuda')
     # ----------------- RND SETUP --------------------
 
     env = gym.make("MiniGrid-FourRooms-v0", render_mode='human', max_steps=50)

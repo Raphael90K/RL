@@ -26,14 +26,16 @@ class Config:
 
     # Environment configuration
     frame_stack_size: int = 4
-    beta_intrinsic: float = 1
-    norm_intrinsic: bool = True
+    beta_intrinsic: float = 0.1
+    norm_intrinsic: bool = False
     action_dim: int = 3
 
     # RND configuration
     rnd_lr: float = 1e-5
 
     # ICM configuration
+    icm_lr: float = 1e-3
+    icm_beta: float = 0.2
 
     # BYOL configuration
     ema_decay:float = 0.99

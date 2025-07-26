@@ -10,20 +10,21 @@ from stable_baselines3.common.callbacks import BaseCallback
 
 class BYOLExploreModel(nn.Module):
     def __init__(self, obs_shape, action_dim, obs_buffer, next_obs_buffer, act_buffer,
-                 ema_decay=0.99, feature_dim=256, device="cuda"):
+                 ema_decay=0.999, feature_dim=256, device="cuda"):
         super().__init__()
         c, h, w = obs_shape
         self.device = torch.device(device)
 
         def make_encoder():
             return nn.Sequential(
-                nn.Conv2d(c, 32, 3, stride=2, padding=1),
-                nn.ReLU(),
+                nn.Conv2d(c, 16, 3, stride=2, padding=1),
+                nn.ELU(),
+                nn.Conv2d(16, 32, 3, stride=2, padding=1),
+                nn.ELU(),
                 nn.Conv2d(32, 64, 3, stride=2, padding=1),
-                nn.ReLU(),
+                nn.ELU(),
                 nn.Flatten(),
-                nn.Linear(64 * (h // 4) * (w // 4), feature_dim),
-                nn.ReLU()
+                nn.Linear(64 * (h // 8) * (w // 8), feature_dim),
             )
 
         self.online_encoder = make_encoder()
@@ -47,8 +48,14 @@ class BYOLExploreModel(nn.Module):
         self.next_obs_buffer = next_obs_buffer
         self.act_buffer = act_buffer
 
-        self.resets_flag = []
+        self.last_hidden_closed_training = None  # für die RNN-Zustände
+        self.last_hidden_closed = None
+
         self._prev_action = None  # zur Zwischenspeicherung von a_{t-1}
+        self.prev_action_training = None  # zur Zwischenspeicherung von a_{t-1}
+
+
+        self.resets_flag = []
 
     def update_target(self):
         for online_param, target_param in zip(self.online_encoder.parameters(), self.target_encoder.parameters()):
@@ -72,7 +79,7 @@ class BYOLExploreModel(nn.Module):
 
             closed_input = torch.cat([omega_t, action_prev], dim=-1)
             action = action.unsqueeze(1) # [B, 1, A]
-            b_t, _ = self.closed_rnn(closed_input)
+            b_t, _ = self.closed_rnn(closed_input, self.last_hidden_closed)
             b_open, _ = self.open_rnn(action, b_t.transpose(0, 1))
             b_open = b_open.squeeze(1)
             pred = self.predictor(b_open)
@@ -85,8 +92,13 @@ class BYOLExploreModel(nn.Module):
             self._prev_action = action.squeeze(1)
             return reward
 
-    def reset_action_prev(self):
-        self._prev_action = None
+    def reset_states(self, training=True):
+        if training:
+            self.prev_action_training = None
+            self.last_hidden_closed_training = None
+        else:
+            self._prev_action = None
+            self.last_hidden_closed = None
 
 
 class BYOLExploreUpdateCallback(BaseCallback):
@@ -133,24 +145,26 @@ class BYOLExploreUpdateCallback(BaseCallback):
         predictor = self.byol_model.predictor
 
         losses = []
-        hidden_closed = None
         for t in range(len(obs_batch) - 1):
+            hidden_closed = self.byol_model.last_hidden_closed_training
             if resets_flag[t]:
-                hidden_closed = None
-                act_prev = torch.zeros_like(actions[t])  # Dummy action
+                self.byol_model.reset_states(True)
+                act_prev = self.byol_model.prev_action_training
             else:
                 act_prev = actions[t - 1]
 
             obs_t = obs_batch[t].unsqueeze(0)
             next_obs_t = next_obs_batch[t].unsqueeze(0)
-            act_prev = act_prev.unsqueeze(0)
             action = actions[t].unsqueeze(0)
+            act_prev = act_prev.unsqueeze(0) if act_prev is not None else torch.zeros_like(action)
 
             omega_t = online_encoder(obs_t).unsqueeze(1)
             closed_input = torch.cat([omega_t, act_prev], dim=-1)
-            b_t, hidden_closed = closed_rnn(closed_input, hidden_closed)
+            b_t, _ = closed_rnn(closed_input, hidden_closed)
             b_open, _ = open_rnn(action, b_t.transpose(0, 1))
             b_open = b_open.squeeze(1)
+
+            self.byol_model.last_hidden_closed_training = b_t.transpose(0, 1).detach()
 
             pred = predictor(b_open)
             target = target_encoder(next_obs_t).detach()

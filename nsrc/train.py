@@ -26,7 +26,7 @@ if __name__ == "__main__":
     env = ImgObsWrapper(env)
     act_env = SaveActionWrapper(env)
     obs_env = SaveObsWrapper(act_env)  # Save observations for RND
-    env_reward = IntrinsicRewardWrapper(obs_env, act_env, rnd_model, beta=1.0,
+    env_reward = IntrinsicRewardWrapper(obs_env, act_env, rnd_model, intrinsic_weight=1.0,
                                         frame_stack_size=4, norm=True)
     env = Monitor(env_reward, f'log/RND_PPO_{time}')  # Monitor to track rewards and other metrics
     env.action_space = gym.spaces.discrete.Discrete(3)  # Set action space to Discrete(3) for the environment

@@ -11,10 +11,10 @@ cfg = Config()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class IntrinsicRewardWrapper(gym.RewardWrapper):
-    def __init__(self, obs_env, act_env, model, beta=1.0, frame_stack_size=4, norm=False, act_dim=3):
+    def __init__(self, obs_env, act_env, model, intrinsic_weight=1.0, frame_stack_size=4, norm=False, act_dim=3):
         super().__init__(obs_env)
-        self.model = model
-        self.beta = beta
+        self.intrinsic_model = model
+        self.intrinsic_weight = intrinsic_weight
         self.obs_buffer = model.obs_buffer
         self.next_obs_buffer = model.next_obs_buffer if hasattr(model, "next_obs_buffer") else None
         self.act_buffer = model.act_buffer if hasattr(model, "act_buffer") else None
@@ -28,10 +28,8 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
-        if hasattr(self.model, "resets"):
-            self.model.resets.append(len(self.obs_buffer))  # Track the number of resets
-            self.model.reset_hidden_states()
-            self.model.reset_action_prev()
+        if hasattr(self.intrinsic_model, "resets_flag"):
+            self.intrinsic_model.reset_states(False)
         for _ in range(self.stack_size):
             self.frames.append(obs)
         return obs, info
@@ -52,8 +50,8 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         next_obs_tensor = torch.tensor(stacked_next_obs.astype(np.float32) / 255.0)
         next_obs_tensor = next_obs_tensor.permute(2, 0, 1).unsqueeze(0).to(device)  # (1, C*stack, H, W)
 
-        intrinsic = self.model.compute_intrinsic_reward(obs=obs_tensor, next_obs=next_obs_tensor,
-                                                        action=action).item()
+        intrinsic = self.intrinsic_model.compute_intrinsic_reward(obs=obs_tensor, next_obs=next_obs_tensor,
+                                                                  action=action).item()
 
         self.obs_buffer.append(stacked_obs.copy())
         if self.next_obs_buffer is not None:
@@ -61,20 +59,21 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         if self.act_buffer is not None:
             self.act_buffer.append(action)
 
-        self.extrinsic_rewards.append(reward)
-        self.intrinsic_rewards.append(self.beta * intrinsic)
 
         if self.norm_func:
             intrinsic = self.norm_func.normalize(intrinsic)
 
-        return reward + self.beta * intrinsic
+        self.extrinsic_rewards.append(reward)
+        self.intrinsic_rewards.append(self.intrinsic_weight * intrinsic)
+
+        return reward + self.intrinsic_weight * intrinsic
 
     def reset_reward_buffers(self):
         self.intrinsic_rewards = []
         self.extrinsic_rewards = []
 
 class RunningEMANormalizer:
-    def __init__(self, alpha=0.99, epsilon=1e-8):
+    def __init__(self, alpha=0.99, epsilon=1e-4):
         self.alpha = alpha
         self.epsilon = epsilon
         self.ema_mean = 0.0
