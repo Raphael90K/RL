@@ -2,9 +2,9 @@ import gymnasium as gym
 import numpy as np
 from minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper
 
-from nsrc.envs.action_wrapper import SaveActionWrapper
-from nsrc.envs.observation_wrapper import SaveObsWrapper
-from nsrc.envs.reward_wrapper import IntrinsicRewardWrapper
+from src.envs.action_wrapper import SaveActionWrapper
+from src.envs.observation_wrapper import SaveObsWrapper
+from src.envs.reward_wrapper import IntrinsicRewardWrapper
 
 
 def make_env(id, model, cfg, render_mode=None):

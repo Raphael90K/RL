@@ -25,7 +25,7 @@ class Config:
     total_timesteps: int = 5_000_000
 
     # Environment configuration
-    frame_stack_size: int = 4
+    frame_stack_size: int = 1
     beta_intrinsic: float = 0.1
     norm_intrinsic: bool = False
     action_dim: int = 3
@@ -34,7 +34,7 @@ class Config:
     rnd_lr: float = 1e-5
 
     # ICM configuration
-    icm_lr: float = 1e-3
+    icm_lr: float = 1e-5
     icm_beta: float = 0.2
 
     # BYOL configuration

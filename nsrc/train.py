@@ -7,8 +7,8 @@ from sb3_contrib import RecurrentPPO
 
 from intrinsic.rnd_model import RNDConvModel, RNDUpdateCallback
 from envs.reward_wrapper import IntrinsicRewardWrapper
-from nsrc.envs.action_wrapper import SaveActionWrapper
-from nsrc.envs.observation_wrapper import SaveObsWrapper
+from src.envs.action_wrapper import SaveActionWrapper
+from src.envs.observation_wrapper import SaveObsWrapper
 from stable_baselines3.common.monitor import Monitor
 
 

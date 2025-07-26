@@ -6,11 +6,11 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv
 from sb3_contrib import RecurrentPPO
 
-from nsrc.callbacks.logRewardCallback import LogIntrinsicExtrinsicRewardsCallback
-from nsrc.callbacks.uniquePositionCallback import UniquePositionCallback
-from nsrc.intrinsic.byol_model import BYOLExploreModel, BYOLExploreUpdateCallback
+from src.callbacks.logRewardCallback import LogIntrinsicExtrinsicRewardsCallback
+from src.callbacks.uniquePositionCallback import UniquePositionCallback
+from src.intrinsic.byol_model import BYOLExploreModel, BYOLExploreUpdateCallback
 
-from nsrc.envs.env import make_env
+from src.envs.env import make_env
 
 
 def train_byol(cfg):

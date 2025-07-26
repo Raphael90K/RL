@@ -6,12 +6,12 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv
 from sb3_contrib import RecurrentPPO
 
-from nsrc.callbacks.uniquePositionCallback import UniquePositionCallback
-from nsrc.config import Config
-from nsrc.intrinsic.icm_model import ICMModel, ICMUpdateCallback
-from nsrc.callbacks.logRewardCallback import LogIntrinsicExtrinsicRewardsCallback
+from src.callbacks.uniquePositionCallback import UniquePositionCallback
+from src.config import Config
+from src.intrinsic.icm_model import ICMModel, ICMUpdateCallback
+from src.callbacks.logRewardCallback import LogIntrinsicExtrinsicRewardsCallback
 
-from nsrc.envs.env import make_env
+from src.envs.env import make_env
 
 
 def train_icm(cfg: Config):

@@ -7,20 +7,20 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv
 from sb3_contrib import RecurrentPPO
 
-from nsrc.callbacks.uniquePositionCallback import UniquePositionCallback
-from nsrc.config import Config
-from nsrc.intrinsic.rnd_model import RNDConvModel, RNDUpdateCallback
-from nsrc.callbacks.logRewardCallback import LogIntrinsicExtrinsicRewardsCallback
+from src.callbacks.uniquePositionCallback import UniquePositionCallback
+from src.config import Config
+from src.intrinsic.rnd_model import RNDConvModel, RNDUpdateCallback
+from src.callbacks.logRewardCallback import LogIntrinsicExtrinsicRewardsCallback
 
-from nsrc.envs.env import make_env
+from src.envs.env import make_env
 
 
 def train_rnd(cfg: Config):
-    obs_buffer = []
+    next_obs_buffer = []
     obs_shape = (3 * cfg.frame_stack_size, 56, 56)
     device = torch.device(cfg.device)
 
-    rnd_model = RNDConvModel(obs_shape, obs_buffer).to(device)
+    rnd_model = RNDConvModel(obs_shape, next_obs_buffer).to(device)
     name = 'RND'
 
     reward_env = make_env(cfg.env_name, rnd_model, cfg)  # Create the environment

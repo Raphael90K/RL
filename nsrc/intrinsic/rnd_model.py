@@ -5,7 +5,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 from torch import optim, device
 
 class RNDConvModel(nn.Module):
-    def __init__(self, obs_shape, obs_buffer, output_dim=256, feature_dim=256):
+    def __init__(self, obs_shape, next_obs_buffer, output_dim=256, feature_dim=256):
         super().__init__()
         c, h, w = obs_shape
         self.encoder = nn.Sequential(
@@ -42,7 +42,7 @@ class RNDConvModel(nn.Module):
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
                 nn.init.orthogonal_(m.weight, gain=1.0)
 
-        self.obs_buffer = obs_buffer
+        self.next_obs_buffer = next_obs_buffer
 
     def forward(self, obs):
         device = next(self.parameters()).device
@@ -65,17 +65,17 @@ class RNDUpdateCallback(BaseCallback):
         super().__init__(verbose)
         self.rnd_model = rnd_model
         self.optimizer = optim.Adam(rnd_model.predictor.parameters(), lr=lr)
-        self.obs_buffer = rnd_model.obs_buffer
+        self.next_obs_buffer = rnd_model.next_obs_buffer
 
 
     def _on_step(self) -> bool:
         return True  # Pflicht-Implementierung, aber hier egal.
 
     def _on_rollout_end(self):
-        if len(self.obs_buffer) == 0:
+        if len(self.next_obs_buffer) == 0:
             print("no observations to update RND model")
             return
-        obs_batch = torch.tensor(np.stack(self.obs_buffer), dtype=torch.float32)
+        obs_batch = torch.tensor(np.stack(self.next_obs_buffer), dtype=torch.float32)
         obs_batch = obs_batch.permute(0, 3, 1, 2)
         print(f'obs_batch shape: {obs_batch.shape}')
         pred, target = self.rnd_model(obs_batch)
@@ -85,6 +85,6 @@ class RNDUpdateCallback(BaseCallback):
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.rnd_model.predictor.parameters(), max_norm=5.0)
         self.optimizer.step()
-        self.obs_buffer.clear()
+        self.next_obs_buffer.clear()
         self.logger.record('rnd/loss', loss.item())
 

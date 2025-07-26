@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from nsrc.config import Config
+from src.config import Config
 
 cfg = Config()
 
@@ -15,7 +15,7 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         super().__init__(obs_env)
         self.intrinsic_model = model
         self.intrinsic_weight = intrinsic_weight
-        self.obs_buffer = model.obs_buffer
+        self.obs_buffer = model.obs_buffer if hasattr(model, "next_obs_buffer") else None
         self.next_obs_buffer = model.next_obs_buffer if hasattr(model, "next_obs_buffer") else None
         self.act_buffer = model.act_buffer if hasattr(model, "act_buffer") else None
         self.stack_size = frame_stack_size
@@ -53,7 +53,8 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         intrinsic = self.intrinsic_model.compute_intrinsic_reward(obs=obs_tensor, next_obs=next_obs_tensor,
                                                                   action=action).item()
 
-        self.obs_buffer.append(stacked_obs.copy())
+        if self.obs_buffer is not None:
+            self.obs_buffer.append(stacked_obs.copy())
         if self.next_obs_buffer is not None:
             self.next_obs_buffer.append(stacked_next_obs.copy())
         if self.act_buffer is not None:

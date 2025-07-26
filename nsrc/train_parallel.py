@@ -1,6 +1,6 @@
 import multiprocessing as mp
 
-from nsrc.train_methods.train_plain import train_plain
+from src.train_methods.train_plain import train_plain
 from train_methods.train_rnd import train_rnd
 from train_methods.train_icm import train_icm
 from train_methods.train_byol import train_byol

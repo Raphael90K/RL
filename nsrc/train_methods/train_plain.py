@@ -5,9 +5,9 @@ from minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper
 from stable_baselines3.common.callbacks import CheckpointCallback, CallbackList
 from sb3_contrib import RecurrentPPO
 
-from nsrc.callbacks.logPlainRewardCallback import LogExtrinsicRewardPlainCallback
+from src.callbacks.logPlainRewardCallback import LogExtrinsicRewardPlainCallback
 
-from nsrc.callbacks.uniquePositionCallback import UniquePositionCallback
+from src.callbacks.uniquePositionCallback import UniquePositionCallback
 
 
 
