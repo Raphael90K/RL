@@ -11,8 +11,8 @@ src/
 │ ├── env.py 
 │ ├── observation_wrapper.py 
 │ └── reward_wrapper.py 
-├── intrinsic/ 
-├── byol_model.py 
-├── icm_model.py 
-└── rnd_model.py 
+└── intrinsic/ 
+  ├── byol_model.py 
+  ├── icm_model.py 
+  └── rnd_model.py 
  </pre>
