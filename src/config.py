@@ -1,4 +1,7 @@
 from dataclasses import dataclass
+import random
+import numpy as np
+import torch
 
 @dataclass
 class Config:
@@ -27,7 +30,7 @@ class Config:
     # Environment configuration
     frame_stack_size: int = 1
     beta_intrinsic: float = 0.1
-    norm_intrinsic: bool = False
+    norm_intrinsic: bool = True
     action_dim: int = 3
 
     # RND configuration
@@ -39,3 +42,13 @@ class Config:
 
     # BYOL configuration
     ema_decay:float = 0.99
+
+
+    def set_seed(self):
+        random.seed(self.seed)
+        np.random.seed(self.seed)
+        torch.manual_seed(self.seed)
+        torch.cuda.manual_seed_all(self.seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+

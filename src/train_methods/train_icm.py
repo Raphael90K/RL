@@ -19,7 +19,7 @@ def train_icm(cfg: Config):
     next_obs_buffer = []
     act_buffer = []
 
-    obs_shape = (3 * 4, 56, 56)
+    obs_shape = (3 * cfg.frame_stack_size, 56, 56)
     icm_model = ICMModel(obs_shape, obs_buffer, next_obs_buffer, act_buffer,
                          action_dim=cfg.action_dim,
                          beta=cfg.icm_beta).to(cfg.device)

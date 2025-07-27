@@ -15,7 +15,7 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         super().__init__(obs_env)
         self.intrinsic_model = model
         self.intrinsic_weight = intrinsic_weight
-        self.obs_buffer = model.obs_buffer if hasattr(model, "next_obs_buffer") else None
+        self.obs_buffer = model.obs_buffer if hasattr(model, "obs_buffer") else None
         self.next_obs_buffer = model.next_obs_buffer if hasattr(model, "next_obs_buffer") else None
         self.act_buffer = model.act_buffer if hasattr(model, "act_buffer") else None
         self.stack_size = frame_stack_size

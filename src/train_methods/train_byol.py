@@ -42,8 +42,7 @@ def train_byol(cfg):
         n_epochs=cfg.n_epochs,
         n_steps=cfg.n_steps,
         batch_size=cfg.batch_size,
-        seed=cfg.seed
-
+        seed=cfg.seed,
     )
     ### Callbacks
     update_callback = BYOLExploreUpdateCallback(byol_model)
