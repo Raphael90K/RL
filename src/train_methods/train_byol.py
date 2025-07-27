@@ -28,7 +28,7 @@ def train_byol(cfg):
 
     reward_env = make_env(cfg.env_name, byol_model, cfg)  # Create the environment
     reward_env.action_space = gym.spaces.discrete.Discrete(
-        cfg.action_dim)  # Set action space to Discrete(3) for the environment
+        cfg.action_dim)
 
     env = DummyVecEnv(
         [lambda: Monitor(reward_env, f'{cfg.log_dir}/{name}')])  # Monitor to track rewards and other metrics
@@ -47,6 +47,7 @@ def train_byol(cfg):
         n_steps=cfg.n_steps,
         batch_size=cfg.batch_size,
         seed=cfg.seed,
+        gae_lambda=cfg.gae_lambda,
     )
     ### Callbacks
     update_callback = BYOLExploreUpdateCallback(byol_model)

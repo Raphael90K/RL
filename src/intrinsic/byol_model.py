@@ -18,11 +18,11 @@ class BYOLExploreModel(nn.Module):
         def make_encoder():
             return nn.Sequential(
                 nn.Conv2d(c, 16, 3, stride=2, padding=1),
-                nn.ELU(),
+                nn.ReLU(),
                 nn.Conv2d(16, 32, 3, stride=2, padding=1),
-                nn.ELU(),
+                nn.ReLU(),
                 nn.Conv2d(32, 64, 3, stride=2, padding=1),
-                nn.ELU(),
+                nn.ReLU(),
                 nn.Flatten(),
                 nn.Linear(64 * (h // 8) * (w // 8), feature_dim),
             )

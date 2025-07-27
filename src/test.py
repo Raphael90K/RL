@@ -9,7 +9,7 @@ from src.config import Config
 if __name__ == "__main__":
     cfg = Config()
     cfg.set_seed()
-    model = RecurrentPPO.load("../models/RND/RND_checkpoint_100000_steps.zip",
+    model = RecurrentPPO.load("../models/PLAIN_MiniGrid-MultiRoom-N2-S4-v0/PLAIN_checkpoint_100000_steps.zip",
                               device='cuda',
                               seed =cfg.seed,)
 

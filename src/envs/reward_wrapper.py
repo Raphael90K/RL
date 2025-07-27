@@ -54,6 +54,7 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         intrinsic = self.intrinsic_model.compute_intrinsic_reward(obs=obs_tensor, next_obs=next_obs_tensor,
                                                                   action=action).item()
 
+        # Store the observations, next observations, and actions in buffers
         if self.obs_buffer is not None:
             self.obs_buffer.append(stacked_obs.copy())
         if self.next_obs_buffer is not None:

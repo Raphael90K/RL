@@ -11,11 +11,11 @@ class RNDConvModel(nn.Module):
 
         self.target = nn.Sequential(
             nn.Conv2d(c, 16, 3, stride=2, padding=1),
-            nn.ELU(),
+            nn.ReLU(),
             nn.Conv2d(16, 32, 3, stride=2, padding=1),
-            nn.ELU(),
+            nn.ReLU(),
             nn.Conv2d(32, 64, 3, stride=2, padding=1),
-            nn.ELU(),
+            nn.ReLU(),
             nn.Flatten(),
             nn.Linear(64 * (h // 8) * (w // 8), feature_dim),
             nn.ReLU(),
@@ -24,11 +24,11 @@ class RNDConvModel(nn.Module):
 
         self.predictor = nn.Sequential(
             nn.Conv2d(c, 16, 3, stride=2, padding=1),
-            nn.ELU(),
+            nn.ReLU(),
             nn.Conv2d(16, 32, 3, stride=2, padding=1),
-            nn.ELU(),
+            nn.ReLU(),
             nn.Conv2d(32, 64, 3, stride=2, padding=1),
-            nn.ELU(),
+            nn.ReLU(),
             nn.Flatten(),
             nn.Linear(64 * (h // 8) * (w // 8), feature_dim),
             nn.ReLU(),
@@ -81,7 +81,7 @@ class RNDUpdateCallback(BaseCallback):
         if len(self.next_obs_buffer) == 0:
             print("no observations to update RND model")
             return
-        obs_batch = torch.tensor(np.stack(self.next_obs_buffer), dtype=torch.float32)
+        obs_batch = torch.tensor(np.stack(self.next_obs_buffer), dtype=torch.float32) / 255.0
         obs_batch = obs_batch.permute(0, 3, 1, 2)
         print(f'obs_batch shape: {obs_batch.shape}')
         pred, target = self.rnd_model(obs_batch)

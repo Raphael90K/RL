@@ -9,6 +9,7 @@ from config import Config
 if __name__ == "__main__":
     cfg = Config()
     cfg.set_seed()
+    print(cfg)
 
     processes = [
         mp.Process(target=train_rnd, args=(cfg,)),

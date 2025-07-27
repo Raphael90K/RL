@@ -1,5 +1,4 @@
 import gymnasium as gym
-import numpy as np
 from minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper
 
 from src.envs.action_wrapper import SaveActionWrapper
@@ -11,7 +10,7 @@ def make_env(id, model, cfg, render_mode=None):
     env = gym.make(id, render_mode=render_mode, max_steps=cfg.max_steps)
     env = RGBImgPartialObsWrapper(env)
     env = ImgObsWrapper(env)
-    act_env = SaveActionWrapper(env)
+    act_env = SaveActionWrapper(env, cfg.allowed_actions)
     obs_env = SaveObsWrapper(act_env)
     reward_env = IntrinsicRewardWrapper(obs_env, act_env, model,
                                         intrinsic_weight=cfg.eta_intrinsic,

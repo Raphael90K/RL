@@ -3,9 +3,9 @@ import random
 import numpy as np
 import torch
 
+
 @dataclass
 class Config:
-
     seed: int = 42
     log_dir: str = "../logs"
     save_dir: str = "../models"
@@ -24,6 +24,7 @@ class Config:
     ent_coef: float = 0.0005
     clip_range: float = 0.2
     gamma: float = 0.99
+    gae_lambda: float = 0.95
     device: str = "cuda"
     total_timesteps: int = 5_000_000
 
@@ -33,19 +34,18 @@ class Config:
     norm_intrinsic: bool = True
     norm_ema_decay: float = 0.99
     norm_ema_eps: float = 1e-4
-    action_dim: int = 6
-
+    action_dim: int = 4
+    allowed_actions: tuple = tuple([0, 1, 2, 5])
 
     # RND configuration
     rnd_lr: float = 1e-4
 
     # ICM configuration
     icm_lr: float = 1e-4
-    icm_beta: float = 0.1
+    icm_beta: float = 0.2
 
     # BYOL configuration
-    byol_ema_decay:float = 0.99
-
+    byol_ema_decay: float = 0.99
 
     def set_seed(self):
         random.seed(self.seed)
@@ -54,4 +54,3 @@ class Config:
         torch.cuda.manual_seed_all(self.seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
-

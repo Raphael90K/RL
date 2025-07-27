@@ -43,6 +43,7 @@ def train_rnd(cfg: Config):
         n_steps=cfg.n_steps,
         batch_size=cfg.batch_size,
         seed=cfg.seed,
+        gae_lambda=cfg.gae_lambda,
     )
     ### Callbacks
     update_callback = RNDUpdateCallback(rnd_model)
