@@ -8,7 +8,8 @@ class RNDConvModel(nn.Module):
     def __init__(self, obs_shape, next_obs_buffer, output_dim=256, feature_dim=256):
         super().__init__()
         c, h, w = obs_shape
-        self.encoder = nn.Sequential(
+
+        self.target = nn.Sequential(
             nn.Conv2d(c, 16, 3, stride=2, padding=1),
             nn.ELU(),
             nn.Conv2d(16, 32, 3, stride=2, padding=1),
@@ -17,15 +18,20 @@ class RNDConvModel(nn.Module):
             nn.ELU(),
             nn.Flatten(),
             nn.Linear(64 * (h // 8) * (w // 8), feature_dim),
-        )
-
-        self.target = nn.Sequential(
-            self.encoder,
+            nn.ReLU(),
             nn.Linear(feature_dim, output_dim)
         )
 
         self.predictor = nn.Sequential(
-            self.encoder,
+            nn.Conv2d(c, 16, 3, stride=2, padding=1),
+            nn.ELU(),
+            nn.Conv2d(16, 32, 3, stride=2, padding=1),
+            nn.ELU(),
+            nn.Conv2d(32, 64, 3, stride=2, padding=1),
+            nn.ELU(),
+            nn.Flatten(),
+            nn.Linear(64 * (h // 8) * (w // 8), feature_dim),
+            nn.ReLU(),
             nn.Linear(feature_dim, output_dim),
             nn.ReLU(),
             nn.Linear(output_dim, output_dim)
@@ -44,12 +50,12 @@ class RNDConvModel(nn.Module):
 
         self.next_obs_buffer = next_obs_buffer
 
-    def forward(self, obs):
+    def forward(self, next_obs):
         device = next(self.parameters()).device
-        obs = obs.to(device)
+        next_obs = next_obs.to(device)
         with torch.no_grad():
-            target_feature = self.target(obs)
-        predictor_feature = self.predictor(obs)
+            target_feature = self.target(next_obs)
+        predictor_feature = self.predictor(next_obs)
         return predictor_feature, target_feature
 
     def compute_intrinsic_reward(self, obs, next_obs, action):

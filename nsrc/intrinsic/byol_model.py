@@ -80,7 +80,9 @@ class BYOLExploreModel(nn.Module):
             closed_input = torch.cat([omega_t, action_prev], dim=-1)
             action = action.unsqueeze(1) # [B, 1, A]
             b_t, _ = self.closed_rnn(closed_input, self.last_hidden_closed)
-            b_open, _ = self.open_rnn(action, b_t.transpose(0, 1))
+            b_t = b_t.transpose(0, 1)  # [1, B, F]
+            self.last_hidden_closed = b_t
+            b_open, _ = self.open_rnn(action, b_t)
             b_open = b_open.squeeze(1)
             pred = self.predictor(b_open)
             target = self.target_encoder(next_obs).detach()
@@ -161,10 +163,11 @@ class BYOLExploreUpdateCallback(BaseCallback):
             omega_t = online_encoder(obs_t).unsqueeze(1)
             closed_input = torch.cat([omega_t, act_prev], dim=-1)
             b_t, _ = closed_rnn(closed_input, hidden_closed)
+            self.byol_model.last_hidden_closed_training = b_t.transpose(0, 1).copy().detach()
+
             b_open, _ = open_rnn(action, b_t.transpose(0, 1))
             b_open = b_open.squeeze(1)
 
-            self.byol_model.last_hidden_closed_training = b_t.transpose(0, 1).detach()
 
             pred = predictor(b_open)
             target = target_encoder(next_obs_t).detach()

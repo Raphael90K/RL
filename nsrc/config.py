@@ -8,7 +8,7 @@ class Config:
     save_dir: str = "../models"
     tensorboard_log: str = "../ppo_tensorboard"
     env_name: str = "MiniGrid-FourRooms-v0"
-    max_steps: int = 128
+    max_steps: int = 64
     verbose: int = 1
     save_freqency: int = 100_000
     num_envs: int = 1

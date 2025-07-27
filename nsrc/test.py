@@ -5,8 +5,7 @@ from sb3_contrib import RecurrentPPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 
 if __name__ == "__main__":
-    model = RecurrentPPO.load("../models/ICM/ICM_checkpoint_1100000_steps.zip", device='cuda')
-    # ----------------- RND SETUP --------------------
+    model = RecurrentPPO.load("../models/ICM/ICM_checkpoint_4600000_steps.zip", device='cuda')
 
     env = gym.make("MiniGrid-FourRooms-v0", render_mode='human', max_steps=50)
     env = RGBImgPartialObsWrapper(env)

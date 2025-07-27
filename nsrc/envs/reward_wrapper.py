@@ -79,7 +79,7 @@ class RunningEMANormalizer:
         self.epsilon = epsilon
         self.ema_mean = 0.0
         self.ema_mean_sq = 0.0
-        self.counter = 1
+        self.counter = 0
 
     def update(self, x):
         self.counter += 1
