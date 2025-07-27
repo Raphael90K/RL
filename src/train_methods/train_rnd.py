@@ -46,7 +46,7 @@ def train_rnd(cfg: Config):
         gae_lambda=cfg.gae_lambda,
     )
     ### Callbacks
-    update_callback = RNDUpdateCallback(rnd_model)
+    update_callback = RNDUpdateCallback(rnd_model ,lr=cfg.rnd_lr)
     unique_pos_callback = UniquePositionCallback()
     log_reward_callback = LogIntrinsicExtrinsicRewardsCallback(reward_env)
     save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}_{cfg.env_name}', name_prefix=f"{name}_checkpoint")

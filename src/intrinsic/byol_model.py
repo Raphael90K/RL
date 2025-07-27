@@ -104,7 +104,7 @@ class BYOLExploreModel(nn.Module):
 
 
 class BYOLExploreUpdateCallback(BaseCallback):
-    def __init__(self, byol_model, lr=1e-4, log_dir=None, verbose=0):
+    def __init__(self, byol_model, lr=1e-4, verbose=0):
         super().__init__(verbose)
         self.byol_model = byol_model
         self.optimizer = optim.Adam(self.byol_model.parameters(), lr=lr)

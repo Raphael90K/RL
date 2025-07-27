@@ -47,6 +47,7 @@ class Config:
 
     # BYOL configuration
     byol_ema_decay: float = 0.99
+    byol_lr: float = 1e-4
 
     def set_seed(self):
         random.seed(self.seed)

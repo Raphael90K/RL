@@ -50,7 +50,7 @@ def train_byol(cfg):
         gae_lambda=cfg.gae_lambda,
     )
     ### Callbacks
-    update_callback = BYOLExploreUpdateCallback(byol_model)
+    update_callback = BYOLExploreUpdateCallback(byol_model, lr=cfg.byol_lr)
     unique_pos_callback = UniquePositionCallback()
     log_reward_callback = LogIntrinsicExtrinsicRewardsCallback(reward_env)
     save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}_{cfg.env_name}',
