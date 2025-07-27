@@ -3,7 +3,7 @@ import numpy as np
 
 
 class UniquePositionCallback(BaseCallback):
-    def __init__(self, verbose=0):
+    def __init__(self, verbose=1):
         super().__init__(verbose)
         self.visited_positions = set()
 

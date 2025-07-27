@@ -9,7 +9,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 class ICMModel(nn.Module):
     def __init__(self, obs_shape, obs_buffer, next_obs_buffer, act_buffer, action_dim, feature_dim=256, beta=0.2):
         super().__init__()
-        print(beta)
+        print(f'beta : {beta}')
         c, h, w = obs_shape
         self.feature = nn.Sequential(
             nn.Conv2d(c, 16, 3, stride=2, padding=1),

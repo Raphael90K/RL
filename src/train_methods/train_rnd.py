@@ -48,7 +48,7 @@ def train_rnd(cfg: Config):
     update_callback = RNDUpdateCallback(rnd_model)
     unique_pos_callback = UniquePositionCallback()
     log_reward_callback = LogIntrinsicExtrinsicRewardsCallback(reward_env)
-    save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}', name_prefix=f"{name}_checkpoint")
+    save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}_{cfg.env_name}', name_prefix=f"{name}_checkpoint")
 
     callbacks = CallbackList([update_callback, unique_pos_callback, log_reward_callback, save_callback])
     model.learn(cfg.total_timesteps, callback=callbacks, tb_log_name=f"{datetime.now().strftime('%Y%m%d-%H%M%S')}")

@@ -11,7 +11,7 @@ cfg = Config()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class IntrinsicRewardWrapper(gym.RewardWrapper):
-    def __init__(self, obs_env, act_env, model, intrinsic_weight=1.0, frame_stack_size=4, norm=False, act_dim=3):
+    def __init__(self, obs_env, act_env, model, intrinsic_weight=1.0, frame_stack_size=4, norm=False, act_dim=6):
         super().__init__(obs_env)
         self.intrinsic_model = model
         self.intrinsic_weight = intrinsic_weight
@@ -25,6 +25,7 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         self.obs_env = obs_env
         self.act_env = act_env
         self.norm_func = RunningEMANormalizer() if norm else None
+        self.act_dim = act_dim
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
@@ -41,7 +42,7 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         stacked_next_obs = np.concatenate(list(self.frames), axis=2)  # (H, W, C*stack)
 
         action = self.act_env.last_action
-        action = F.one_hot(torch.tensor(action).unsqueeze(0), num_classes=3).float()
+        action = F.one_hot(torch.tensor(action).unsqueeze(0), num_classes=self.act_dim).float()
 
 
         obs_tensor = torch.tensor(stacked_obs.astype(np.float32) / 255.0)

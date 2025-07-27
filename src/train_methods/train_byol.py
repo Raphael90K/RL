@@ -17,10 +17,13 @@ def train_byol(cfg):
     obs_buffer = []
     next_obs_buffer = []
     act_buffer = []
-    act_dim = 3
+    act_dim = cfg.action_dim
 
     obs_shape = (3 * cfg.frame_stack_size, 56, 56)
-    byol_model = BYOLExploreModel(obs_shape, act_dim, obs_buffer, next_obs_buffer, act_buffer).to(cfg.device)
+    byol_model = BYOLExploreModel(obs_shape, obs_buffer, next_obs_buffer, act_buffer,
+                                  action_dim=cfg.action_dim,
+                                  ema_decay=cfg.byol_ema_decay
+                                  ).to(cfg.device)
     name = 'BYOL'
 
     reward_env = make_env(cfg.env_name, byol_model, cfg)  # Create the environment
@@ -49,7 +52,7 @@ def train_byol(cfg):
     update_callback = BYOLExploreUpdateCallback(byol_model)
     unique_pos_callback = UniquePositionCallback()
     log_reward_callback = LogIntrinsicExtrinsicRewardsCallback(reward_env)
-    save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}',
+    save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}_{cfg.env_name}',
                                        name_prefix=f"{name}_checkpoint")
 
     callbacks = CallbackList([update_callback, unique_pos_callback, log_reward_callback, save_callback])

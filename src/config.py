@@ -10,18 +10,18 @@ class Config:
     log_dir: str = "../logs"
     save_dir: str = "../models"
     tensorboard_log: str = "../ppo_tensorboard"
-    env_name: str = "MiniGrid-FourRooms-v0"
-    max_steps: int = 64
+    env_name: str = "MiniGrid-MultiRoom-N2-S4-v0"
+    max_steps: int = 128
     verbose: int = 1
     save_freqency: int = 100_000
     num_envs: int = 1
 
     # PPO configuration
-    model_lr: float = 3e-4
-    batch_size: int = 128
-    n_steps: int = 512
-    n_epochs: int = 5
-    ent_coef: float = 0.05
+    model_lr: float = 1e-4
+    batch_size: int = 256
+    n_steps: int = 2048
+    n_epochs: int = 4
+    ent_coef: float = 0.0005
     clip_range: float = 0.2
     gamma: float = 0.99
     device: str = "cuda"
@@ -29,19 +29,22 @@ class Config:
 
     # Environment configuration
     frame_stack_size: int = 1
-    beta_intrinsic: float = 0.1
+    eta_intrinsic: float = 0.05
     norm_intrinsic: bool = True
-    action_dim: int = 3
+    norm_ema_decay: float = 0.99
+    norm_ema_eps: float = 1e-4
+    action_dim: int = 6
+
 
     # RND configuration
-    rnd_lr: float = 1e-5
+    rnd_lr: float = 1e-4
 
     # ICM configuration
-    icm_lr: float = 1e-5
-    icm_beta: float = 0.5
+    icm_lr: float = 1e-4
+    icm_beta: float = 0.1
 
     # BYOL configuration
-    ema_decay:float = 0.99
+    byol_ema_decay:float = 0.99
 
 
     def set_seed(self):

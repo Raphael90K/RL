@@ -52,7 +52,7 @@ def train_icm(cfg: Config):
     update_callback = ICMUpdateCallback(icm_model, lr=cfg.icm_lr)
     unique_pos_callback = UniquePositionCallback()
     log_reward_callback = LogIntrinsicExtrinsicRewardsCallback(reward_env)
-    save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}',
+    save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}_{cfg.env_name}',
                                        name_prefix=f"{name}_checkpoint")
 
     callbacks = CallbackList([update_callback, unique_pos_callback, log_reward_callback, save_callback])

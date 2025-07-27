@@ -9,8 +9,8 @@ from stable_baselines3.common.callbacks import BaseCallback
 
 
 class BYOLExploreModel(nn.Module):
-    def __init__(self, obs_shape, action_dim, obs_buffer, next_obs_buffer, act_buffer,
-                 ema_decay=0.999, feature_dim=256, device="cuda"):
+    def __init__(self, obs_shape, obs_buffer, next_obs_buffer, act_buffer, action_dim=3,
+                 ema_decay=0.99, feature_dim=256, device="cuda"):
         super().__init__()
         c, h, w = obs_shape
         self.device = torch.device(device)
@@ -55,7 +55,6 @@ class BYOLExploreModel(nn.Module):
         self._prev_action = None  # zur Zwischenspeicherung von a_{t-1}
         self.prev_action_training = None  # zur Zwischenspeicherung von a_{t-1}
 
-
         self.resets_flag = []
 
     def update_target(self):
@@ -69,7 +68,7 @@ class BYOLExploreModel(nn.Module):
             else:
                 action_prev = self._prev_action
 
-            obs= obs.to(self.device)
+            obs = obs.to(self.device)
             next_obs = next_obs.to(self.device)
             action_prev = action_prev.to(self.device)
             action = action.to(self.device)
@@ -79,7 +78,7 @@ class BYOLExploreModel(nn.Module):
             action_prev = action_prev.unsqueeze(1)  # [B, 1, A]
 
             closed_input = torch.cat([omega_t, action_prev], dim=-1)
-            action = action.unsqueeze(1) # [B, 1, A]
+            action = action.unsqueeze(1)  # [B, 1, A]
             b_t, _ = self.closed_rnn(closed_input, self.last_hidden_closed)
             b_t = b_t.transpose(0, 1)  # [1, B, F]
             self.last_hidden_closed = b_t
@@ -121,8 +120,10 @@ class BYOLExploreUpdateCallback(BaseCallback):
 
     def _on_rollout_end(self):
         device = self.byol_model.device
-        obs = torch.tensor(np.stack(self.byol_model.obs_buffer), dtype=torch.float32, device=device).permute(0, 3, 1, 2) / 255.0
-        next_obs = torch.tensor(np.stack(self.byol_model.next_obs_buffer), dtype=torch.float32, device=device).permute(0, 3, 1, 2) / 255.0
+        obs = torch.tensor(np.stack(self.byol_model.obs_buffer), dtype=torch.float32, device=device).permute(0, 3, 1,
+                                                                                                             2) / 255.0
+        next_obs = torch.tensor(np.stack(self.byol_model.next_obs_buffer), dtype=torch.float32, device=device).permute(
+            0, 3, 1, 2) / 255.0
         actions = torch.tensor(np.stack(self.byol_model.act_buffer), dtype=torch.float32, device=device)
         resets = self.byol_model.resets_flag
 
@@ -138,7 +139,6 @@ class BYOLExploreUpdateCallback(BaseCallback):
         self.logger.record('byol_explore/loss', loss)
 
         return True
-
 
     def train_on_sequence(self, obs_batch, next_obs_batch, actions, resets_flag):
         online_encoder = self.byol_model.online_encoder
@@ -168,7 +168,6 @@ class BYOLExploreUpdateCallback(BaseCallback):
 
             self.byol_model.last_hidden_closed_training = b_t.transpose(0, 1)
             b_open = b_open.squeeze(1)
-
 
             pred = predictor(b_open)
             target = target_encoder(next_obs_t).detach()

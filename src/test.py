@@ -9,14 +9,14 @@ from src.config import Config
 if __name__ == "__main__":
     cfg = Config()
     cfg.set_seed()
-    model = RecurrentPPO.load("../models/ICM/ICM_checkpoint_5000000_steps.zip",
+    model = RecurrentPPO.load("../models/RND/RND_checkpoint_100000_steps.zip",
                               device='cuda',
                               seed =cfg.seed,)
 
-    env = gym.make("MiniGrid-FourRooms-v0", render_mode='human', max_steps=cfg.max_steps)
+    env = gym.make(cfg.env_name, render_mode='human', max_steps=cfg.max_steps)
     env = RGBImgPartialObsWrapper(env)
     env = ImgObsWrapper(env)
-    env.action_space = gym.spaces.discrete.Discrete(3)
+    env.action_space = gym.spaces.discrete.Discrete(cfg.action_dim)
     vec_env = DummyVecEnv([lambda: env])  # Wrap the environment in a DummyVecEnv for vectorized operations
     vec_env.seed(cfg.seed)
 
