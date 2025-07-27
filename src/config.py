@@ -10,8 +10,6 @@ class Config:
     log_dir: str = "../logs"
     save_dir: str = "../models"
     tensorboard_log: str = "../ppo_tensorboard"
-    env_name: str = "MiniGrid-MultiRoom-N2-S4-v0"
-    max_steps: int = 128
     verbose: int = 1
     save_freqency: int = 100_000
     num_envs: int = 1
@@ -29,6 +27,9 @@ class Config:
     total_timesteps: int = 5_000_000
 
     # Environment configuration
+    env_name: str = "MiniGrid-MultiRoom-N2-S4-v0"
+    rooms: int = 2
+    max_steps: int = 20 * rooms
     frame_stack_size: int = 1
     eta_intrinsic: float = 0.05
     norm_intrinsic: bool = True

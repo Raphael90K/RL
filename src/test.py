@@ -5,17 +5,19 @@ from sb3_contrib import RecurrentPPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 
 from src.config import Config
+from src.envs.action_wrapper import SaveActionWrapper
 
 if __name__ == "__main__":
     cfg = Config()
     cfg.set_seed()
-    model = RecurrentPPO.load("../models/PLAIN_MiniGrid-MultiRoom-N2-S4-v0/PLAIN_checkpoint_100000_steps.zip",
+    model = RecurrentPPO.load("../models/PLAIN_MiniGrid-MultiRoom-N2-S4-v0/PLAIN_checkpoint_200000_steps.zip",
                               device='cuda',
                               seed =cfg.seed,)
 
     env = gym.make(cfg.env_name, render_mode='human', max_steps=cfg.max_steps)
     env = RGBImgPartialObsWrapper(env)
     env = ImgObsWrapper(env)
+    env = SaveActionWrapper(env, cfg.allowed_actions)
     env.action_space = gym.spaces.discrete.Discrete(cfg.action_dim)
     vec_env = DummyVecEnv([lambda: env])  # Wrap the environment in a DummyVecEnv for vectorized operations
     vec_env.seed(cfg.seed)
