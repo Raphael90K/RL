@@ -1,5 +1,5 @@
 <pre> 
-``` src/ 
+src/ 
 ├── config.py 
 ├── train_parallel.py
 ├── callbacks/ 
@@ -15,5 +15,4 @@
 ├── byol_model.py 
 ├── icm_model.py 
 └── rnd_model.py 
-``` 
-</pre>
+ </pre>
