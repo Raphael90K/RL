@@ -111,6 +111,8 @@ class ICMUpdateCallback(BaseCallback):
 
         self.optimizer.zero_grad()
         total_loss.backward()
+        total_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.icm_model.parameters(), max_norm=5.0)
         self.optimizer.step()
 
         self.logger.record('icm/forward_loss', forward_loss.item())

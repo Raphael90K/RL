@@ -36,7 +36,7 @@ def train_byol(cfg):
         verbose=cfg.verbose,
         tensorboard_log=f"{cfg.tensorboard_log}/{name}",
         device=cfg.device,
-        ent_coef=0.05,
+        ent_coef=cfg.ent_coef,
         gamma=cfg.gamma,
         learning_rate=cfg.model_lr,
         n_epochs=cfg.n_epochs,

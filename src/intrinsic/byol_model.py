@@ -34,6 +34,7 @@ class BYOLExploreModel(nn.Module):
 
         self.closed_rnn = nn.GRU(feature_dim + action_dim, feature_dim, batch_first=True)
         self.open_rnn = nn.GRU(action_dim, feature_dim, batch_first=True)
+
         for param in self.open_rnn.parameters():
             param.requires_grad = True
 
@@ -163,9 +164,9 @@ class BYOLExploreUpdateCallback(BaseCallback):
             omega_t = online_encoder(obs_t).unsqueeze(1)
             closed_input = torch.cat([omega_t, act_prev], dim=-1)
             b_t, _ = closed_rnn(closed_input, hidden_closed)
-            self.byol_model.last_hidden_closed_training = b_t.transpose(0, 1).copy().detach()
-
             b_open, _ = open_rnn(action, b_t.transpose(0, 1))
+
+            self.byol_model.last_hidden_closed_training = b_t.transpose(0, 1)
             b_open = b_open.squeeze(1)
 
 
