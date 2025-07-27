@@ -166,7 +166,7 @@ class BYOLExploreUpdateCallback(BaseCallback):
             b_t, _ = closed_rnn(closed_input, hidden_closed)
             b_open, _ = open_rnn(action, b_t.transpose(0, 1))
 
-            self.byol_model.last_hidden_closed_training = b_t.transpose(0, 1)
+            self.byol_model.last_hidden_closed_training = b_t.transpose(0, 1).detach()
             b_open = b_open.squeeze(1)
 
             pred = predictor(b_open)
