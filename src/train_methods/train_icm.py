@@ -31,6 +31,7 @@ def train_icm(cfg: Config):
 
     env = DummyVecEnv(
         [lambda: Monitor(reward_env, f'{cfg.log_dir}/{name}')])  # Monitor to track rewards and other metrics
+    env.seed(cfg.seed)
 
     model = RecurrentPPO(
         "CnnLstmPolicy",

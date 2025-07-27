@@ -4,14 +4,21 @@ from minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper, RGBImgObsW
 from sb3_contrib import RecurrentPPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 
-if __name__ == "__main__":
-    model = RecurrentPPO.load("../models/ICM/ICM_checkpoint_4600000_steps.zip", device='cuda')
+from src.config import Config
 
-    env = gym.make("MiniGrid-FourRooms-v0", render_mode='human', max_steps=50)
+if __name__ == "__main__":
+    cfg = Config()
+    cfg.set_seed()
+    model = RecurrentPPO.load("../models/ICM/ICM_checkpoint_5000000_steps.zip",
+                              device='cuda',
+                              seed =cfg.seed,)
+
+    env = gym.make("MiniGrid-FourRooms-v0", render_mode='human', max_steps=cfg.max_steps)
     env = RGBImgPartialObsWrapper(env)
     env = ImgObsWrapper(env)
     env.action_space = gym.spaces.discrete.Discrete(3)
     vec_env = DummyVecEnv([lambda: env])  # Wrap the environment in a DummyVecEnv for vectorized operations
+    vec_env.seed(cfg.seed)
 
     print(env.action_space)
 

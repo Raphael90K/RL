@@ -38,7 +38,7 @@ class Config:
 
     # ICM configuration
     icm_lr: float = 1e-5
-    icm_beta: float = 0.2
+    icm_beta: float = 0.5
 
     # BYOL configuration
     ema_decay:float = 0.99

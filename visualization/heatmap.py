@@ -14,8 +14,8 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 # -----------------------------
 
 BASE_MODEL_DIR = "../models"
-AGENT_NAMES = ["ICM", "RND", "BYOL"]
-NUM_EPISODES = 100
+AGENT_NAMES = ["ICM", "RND", "BYOL", "PLAIN"]
+NUM_EPISODES = 1
 MAX_STEPS = 50
 SEED = 42
 GRID_SIZE = 15  # Für konsistente Umgebung
@@ -24,26 +24,25 @@ GRID_SIZE = 15  # Für konsistente Umgebung
 # Hilfsfunktionen
 # -----------------------------
 
-def make_env(seed):
+def make_vec_env(seed):
     env = gym.make("MiniGrid-FourRooms-v0", render_mode=None, max_steps=MAX_STEPS)
     env = RGBImgPartialObsWrapper(env)
     env = ImgObsWrapper(env)
     env.action_space = gym.spaces.Discrete(3)
-    env.reset(seed=seed)
-    return env
+    vec_env = DummyVecEnv([lambda: env])
+    vec_env.seed(seed)
+    return vec_env
 
 def collect_visitation(model_path, num_episodes=NUM_EPISODES):
     model = RecurrentPPO.load(model_path, device="cuda" if torch.cuda.is_available() else "cpu")
 
-    env = make_env(SEED)
-    height, width = env.unwrapped.grid.height, env.unwrapped.grid.width
+    vec_env = make_vec_env(SEED)
+    height, width = vec_env.get_attr('unwrapped')[0].grid.height, vec_env.get_attr('unwrapped')[0].grid.width
     MAP_SIZE = (height, width)
 
     visitation = np.zeros(MAP_SIZE, dtype=np.int32)
-    vec_env = DummyVecEnv([lambda: env])
     model.set_env(vec_env)
 
-    lstm_states = None
     num_envs = 1
     episode_starts = np.ones((num_envs,), dtype=bool)
 
@@ -106,7 +105,6 @@ def plot_heatmaps_grid(data_dict):
             if matrix is not None:
                 sns.heatmap(matrix, ax=ax, cmap="inferno", square=True, cbar=False,
                             xticklabels=False, yticklabels=False, vmin=0, vmax=0.05)
-                ax.invert_yaxis()
             else:
                 ax.axis("off")
 

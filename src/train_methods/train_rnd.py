@@ -6,6 +6,7 @@ from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv
 from sb3_contrib import RecurrentPPO
+from torch.backends.cudnn import deterministic
 
 from src.callbacks.uniquePositionCallback import UniquePositionCallback
 from src.config import Config
@@ -27,6 +28,7 @@ def train_rnd(cfg: Config):
     reward_env.action_space = gym.spaces.discrete.Discrete(cfg.action_dim)  # Set action space to Discrete(3) for the environment
 
     env = DummyVecEnv([lambda: Monitor(reward_env, f'{cfg.log_dir}/{name}')])  # Monitor to track rewards and other metrics
+    env.seed(cfg.seed)
 
     model = RecurrentPPO(
         "CnnLstmPolicy",

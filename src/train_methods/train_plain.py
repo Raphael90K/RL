@@ -4,6 +4,7 @@ from datetime import datetime
 from minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper
 from stable_baselines3.common.callbacks import CheckpointCallback, CallbackList
 from sb3_contrib import RecurrentPPO
+from stable_baselines3.common.vec_env import VecEnv, DummyVecEnv
 
 from src.callbacks.logPlainRewardCallback import LogExtrinsicRewardPlainCallback
 
@@ -16,6 +17,8 @@ def train_plain(cfg):
     env = gym.make(cfg.env_name, max_steps=cfg.max_steps)
     env = RGBImgPartialObsWrapper(env)
     env = ImgObsWrapper(env)
+    env = DummyVecEnv([lambda: env])
+    env.seed(cfg.seed)
     env.action_space = gym.spaces.discrete.Discrete(3)
 
     model = RecurrentPPO(
