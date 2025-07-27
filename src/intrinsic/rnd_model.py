@@ -89,7 +89,6 @@ class RNDUpdateCallback(BaseCallback):
 
         self.optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.rnd_model.predictor.parameters(), max_norm=5.0)
         self.optimizer.step()
         self.next_obs_buffer.clear()
         self.logger.record('rnd/loss', loss.item())
