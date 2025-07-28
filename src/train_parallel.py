@@ -12,10 +12,10 @@ if __name__ == "__main__":
     print(cfg)
 
     processes = [
-        mp.Process(target=train_rnd, args=(cfg,)),
-        mp.Process(target=train_icm, args=(cfg,)),
-        #mp.Process(target=train_byol, args=(cfg,)),
-        #mp.Process(target=train_plain, args=(cfg,)),
+        #mp.Process(target=train_rnd, args=(cfg,)),
+        #mp.Process(target=train_icm, args=(cfg,)),
+        mp.Process(target=train_byol, args=(cfg,)),
+        mp.Process(target=train_plain, args=(cfg,)),
     ]
 
     for p in processes:
