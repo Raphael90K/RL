@@ -10,14 +10,14 @@ from src.envs.action_wrapper import SaveActionWrapper
 if __name__ == "__main__":
     cfg = Config()
     cfg.set_seed()
-    model = RecurrentPPO.load("../models/RND_MiniGrid-MultiRoom-N2-S4-v0/RND_checkpoint_3600000_steps.zip",
+    model = RecurrentPPO.load("../models/RND_MiniGrid-MultiRoom-N4-S5-v0/RND_checkpoint_4400000_steps.zip",
                               device='cuda',
                               seed =cfg.seed,)
 
     env = gym.make(cfg.env_name, render_mode='human', max_steps=cfg.max_steps)
     env = RGBImgPartialObsWrapper(env)
     env = ImgObsWrapper(env)
-    env = SaveActionWrapper(env, cfg.allowed_actions)
+    env = SaveActionWrapper(env, list(cfg.allowed_actions))
     env.action_space = gym.spaces.discrete.Discrete(cfg.action_dim)
     vec_env = DummyVecEnv([lambda: env])  # Wrap the environment in a DummyVecEnv for vectorized operations
     vec_env.seed(cfg.seed)

@@ -27,8 +27,8 @@ class Config:
     total_timesteps: int = 5_000_000
 
     # Environment configuration
-    env_name: str = "MiniGrid-MultiRoom-N2-S4-v0"
-    rooms: int = 2
+    env_name: str = "MiniGrid-MultiRoom-N4-S5-v0"
+    rooms: int = 4
     max_steps: int = 20 * rooms
     frame_stack_size: int = 1
     eta_intrinsic: float = 0.05

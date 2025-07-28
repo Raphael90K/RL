@@ -68,14 +68,6 @@ class ICMModel(nn.Module):
         intrinsic_reward = 0.5 * (predicted_next_features - features_next_obs.detach()).pow(2).sum(dim=1)
         return intrinsic_reward.detach()
 
-    def to_long_tensor(self, x):
-        if isinstance(x, torch.Tensor):
-            tensor = x.detach().clone().to(dtype=torch.long, device=self.device)
-        else:
-            tensor = torch.tensor(x, dtype=torch.long, device=self.device)
-        if tensor.dim() == 0:
-            tensor = tensor.unsqueeze(0)
-        return tensor
 
 class ICMUpdateCallback(BaseCallback):
     def __init__(self, icm_model, lr=1e-3,
