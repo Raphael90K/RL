@@ -2,7 +2,6 @@
 /.idea/
 /test/
 /logs/
-/ppo_tensorboard/
 /visualization/
 /models/
 /test/
