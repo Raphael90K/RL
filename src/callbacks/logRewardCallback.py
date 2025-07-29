@@ -10,7 +10,6 @@ class LogIntrinsicExtrinsicRewardsCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         dones = self.locals["dones"]  # von VecEnv, Liste der Envs
-        print("Timestep:", self.num_timesteps)
         for env_idx, done in enumerate(dones):
             if done:
                 extrinsic_sum = np.sum(self.reward_wrapper.extrinsic_rewards)

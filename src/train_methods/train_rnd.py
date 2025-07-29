@@ -25,9 +25,11 @@ def train_rnd(cfg: Config):
     name = 'RND'
 
     reward_env = make_env(cfg.env_name, rnd_model, cfg)  # Create the environment
-    reward_env.action_space = gym.spaces.discrete.Discrete(cfg.action_dim)  # Set action space to Discrete(3) for the environment
+    reward_env.action_space = gym.spaces.discrete.Discrete(
+        cfg.action_dim)  # Set action space to Discrete(3) for the environment
 
-    env = DummyVecEnv([lambda: Monitor(reward_env, f'{cfg.log_dir}/{name}')])  # Monitor to track rewards and other metrics
+    env = DummyVecEnv(
+        [lambda: Monitor(reward_env, f'{cfg.log_dir}/{name}')])  # Monitor to track rewards and other metrics
     env.seed(cfg.seed)
 
     model = RecurrentPPO(
@@ -46,10 +48,12 @@ def train_rnd(cfg: Config):
         gae_lambda=cfg.gae_lambda,
     )
     ### Callbacks
-    update_callback = RNDUpdateCallback(rnd_model ,lr=cfg.rnd_lr)
+    update_callback = RNDUpdateCallback(rnd_model, lr=cfg.rnd_lr)
     unique_pos_callback = UniquePositionCallback()
     log_reward_callback = LogIntrinsicExtrinsicRewardsCallback(reward_env)
-    save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}_{cfg.env_name}', name_prefix=f"{name}_checkpoint")
+    save_callback = CheckpointCallback(cfg.save_freqency,
+                                       save_path=f'{cfg.save_dir}/{name}_{cfg.env_name}_{cfg.use_weight_decay}',
+                                       name_prefix=f"{name}_checkpoint")
 
     callbacks = CallbackList([update_callback, unique_pos_callback, log_reward_callback, save_callback])
     model.learn(cfg.total_timesteps, callback=callbacks, tb_log_name=f"{datetime.now().strftime('%Y%m%d-%H%M%S')}")

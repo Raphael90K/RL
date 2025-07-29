@@ -53,7 +53,8 @@ def train_byol(cfg):
     update_callback = BYOLExploreUpdateCallback(byol_model, lr=cfg.byol_lr)
     unique_pos_callback = UniquePositionCallback()
     log_reward_callback = LogIntrinsicExtrinsicRewardsCallback(reward_env)
-    save_callback = CheckpointCallback(cfg.save_freqency, save_path=f'{cfg.save_dir}/{name}_{cfg.env_name}',
+    save_callback = CheckpointCallback(cfg.save_freqency,
+                                       save_path=f'{cfg.save_dir}/{name}_{cfg.env_name}_{cfg.use_weight_decay}',
                                        name_prefix=f"{name}_checkpoint")
 
     callbacks = CallbackList([update_callback, unique_pos_callback, log_reward_callback, save_callback])

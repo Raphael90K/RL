@@ -12,9 +12,5 @@ def make_env(id, model, cfg, render_mode=None):
     env = ImgObsWrapper(env)
     act_env = SaveActionWrapper(env, cfg.allowed_actions)
     obs_env = SaveObsWrapper(act_env)
-    reward_env = IntrinsicRewardWrapper(obs_env, act_env, model,
-                                        intrinsic_weight=cfg.eta_intrinsic,
-                                        frame_stack_size=cfg.frame_stack_size,
-                                        norm=cfg.norm_intrinsic,
-                                        act_dim=cfg.action_dim)
+    reward_env = IntrinsicRewardWrapper(obs_env, act_env, model, cfg)
     return reward_env

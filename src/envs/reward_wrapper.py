@@ -15,7 +15,7 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
     def __init__(self, obs_env, act_env, model, cfg):
         super().__init__(obs_env)
         self.intrinsic_model = model
-        self.intrinsic_weight = cfg.intrinsic_weight
+        self.intrinsic_weight = cfg.eta_intrinsic
         self.obs_buffer = model.obs_buffer if hasattr(model, "obs_buffer") else None
         self.next_obs_buffer = model.next_obs_buffer if hasattr(model, "next_obs_buffer") else None
         self.act_buffer = model.act_buffer if hasattr(model, "act_buffer") else None
@@ -26,16 +26,16 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         self.obs_env = obs_env
         self.act_env = act_env
         self.norm_func = RunningEMANormalizer() if cfg.norm_intrinsic else None
-        self.act_dim = cfg.act_dim
+        self.act_dim = cfg.action_dim
 
         # eta decay factor for intrinsic reward
         self.use_weight_decay = cfg.use_weight_decay
-        self.intrinsic_weight_decay = cfg.intrinsic_weight
-        self.A = cfg.intrinsic_weight / 100
+        self.intrinsic_weight_decay = cfg.eta_intrinsic
+        self.A = cfg.eta_intrinsic / 100
         self.B = cfg.ad_B
-        self.K = cfg.intrinsic_weight
+        self.K = cfg.eta_intrinsic
         self.F = cfg.total_timesteps
-        self.t = 0
+        self.t = 1
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
@@ -94,7 +94,6 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         exponent = -16 * self.B * (1 - self.t / self.F)
         denominator = (1 + np.exp(exponent)) ** 20
         eta_t = self.A + ((self.K - self.A) / denominator)
-        print("Eta_t:", eta_t, "t: ", self.t)
         self.intrinsic_weight_decay = eta_t
         self.t += 1
 
