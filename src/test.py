@@ -10,7 +10,7 @@ from src.envs.action_wrapper import SaveActionWrapper
 if __name__ == "__main__":
     cfg = Config()
     cfg.set_seed()
-    model = RecurrentPPO.load("../models/RND_MiniGrid-MultiRoom-N4-S5-v0/RND_checkpoint_4400000_steps.zip",
+    model = RecurrentPPO.load("../models/ICM_MiniGrid-MultiRoom-N4-S5-v0/ICM_checkpoint_5000000_steps.zip",
                               device='cuda',
                               seed =cfg.seed,)
 

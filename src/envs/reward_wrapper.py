@@ -10,22 +10,32 @@ cfg = Config()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+
 class IntrinsicRewardWrapper(gym.RewardWrapper):
-    def __init__(self, obs_env, act_env, model, intrinsic_weight=1.0, frame_stack_size=4, norm=False, act_dim=6):
+    def __init__(self, obs_env, act_env, model, cfg):
         super().__init__(obs_env)
         self.intrinsic_model = model
-        self.intrinsic_weight = intrinsic_weight
+        self.intrinsic_weight = cfg.intrinsic_weight
         self.obs_buffer = model.obs_buffer if hasattr(model, "obs_buffer") else None
         self.next_obs_buffer = model.next_obs_buffer if hasattr(model, "next_obs_buffer") else None
         self.act_buffer = model.act_buffer if hasattr(model, "act_buffer") else None
-        self.stack_size = frame_stack_size
-        self.frames = deque(maxlen=frame_stack_size)
+        self.stack_size = cfg.frame_stack_size
+        self.frames = deque(maxlen=cfg.frame_stack_size)
         self.intrinsic_rewards = []
         self.extrinsic_rewards = []
         self.obs_env = obs_env
         self.act_env = act_env
-        self.norm_func = RunningEMANormalizer() if norm else None
-        self.act_dim = act_dim
+        self.norm_func = RunningEMANormalizer() if cfg.norm_intrinsic else None
+        self.act_dim = cfg.act_dim
+
+        # eta decay factor for intrinsic reward
+        self.use_weight_decay = cfg.use_weight_decay
+        self.intrinsic_weight_decay = cfg.intrinsic_weight
+        self.A = cfg.intrinsic_weight / 100
+        self.B = cfg.ad_B
+        self.K = cfg.intrinsic_weight
+        self.F = cfg.total_timesteps
+        self.t = 0
 
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
@@ -43,7 +53,6 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
 
         action = self.act_env.last_action
         action = F.one_hot(torch.tensor(action).unsqueeze(0), num_classes=self.act_dim).float()
-
 
         obs_tensor = torch.tensor(stacked_obs.astype(np.float32) / 255.0)
         obs_tensor = obs_tensor.permute(2, 0, 1).unsqueeze(0).to(device)  # (1, C*stack, H, W)
@@ -66,16 +75,32 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         if self.norm_func:
             intrinsic = self.norm_func.normalize(intrinsic)
 
-        self.extrinsic_rewards.append(reward)
-        self.intrinsic_rewards.append(self.intrinsic_weight * intrinsic)
+        if self.use_weight_decay:
+            self.parametric_beta_decay()
+            intrinsic = intrinsic * self.intrinsic_weight_decay
+        else:
+            intrinsic = intrinsic * self.intrinsic_weight
 
-        return reward + self.intrinsic_weight * intrinsic
+        self.extrinsic_rewards.append(reward)
+        self.intrinsic_rewards.append(intrinsic)
+
+        return reward + intrinsic
 
     def reset_reward_buffers(self):
         self.intrinsic_rewards = []
         self.extrinsic_rewards = []
 
+    def parametric_beta_decay(self):
+        exponent = -16 * self.B * (1 - self.t / self.F)
+        denominator = (1 + np.exp(exponent)) ** 20
+        eta_t = self.A + ((self.K - self.A) / denominator)
+        print("Eta_t:", eta_t, "t: ", self.t)
+        self.intrinsic_weight_decay = eta_t
+        self.t += 1
+
+
 class RunningEMANormalizer:
+
     def __init__(self, alpha=0.99, epsilon=1e-4):
         self.alpha = alpha
         self.epsilon = epsilon
@@ -97,4 +122,3 @@ class RunningEMANormalizer:
     def normalize(self, x):
         self.update(x)
         return x / self.std()
-

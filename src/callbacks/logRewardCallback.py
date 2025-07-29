@@ -10,6 +10,7 @@ class LogIntrinsicExtrinsicRewardsCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         dones = self.locals["dones"]  # von VecEnv, Liste der Envs
+        print("Timestep:", self.num_timesteps)
         for env_idx, done in enumerate(dones):
             if done:
                 extrinsic_sum = np.sum(self.reward_wrapper.extrinsic_rewards)
@@ -20,6 +21,7 @@ class LogIntrinsicExtrinsicRewardsCallback(BaseCallback):
                 # Tensorboard Logging
                 self.logger.record(f"rollout/ext_rew_episode_{env_idx}", extrinsic_sum)
                 self.logger.record(f"rollout/int_rew_episode_{env_idx}", intrinsic_sum)
+                self.logger.record(f'rollout/decay_factor_episode_{env_idx}', self.reward_wrapper.intrinsic_weight_decay)
                 self.reward_wrapper.reset_reward_buffers()
         return True
 
