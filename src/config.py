@@ -39,7 +39,7 @@ class Config:
     allowed_actions: tuple = tuple([0, 1, 2, 5])
 
     use_weight_decay: bool = True
-    ad_B: float = 0.5
+    pd_B: float = 0.5
 
     # RND configuration
     rnd_lr: float = 1e-4

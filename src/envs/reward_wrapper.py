@@ -32,7 +32,7 @@ class IntrinsicRewardWrapper(gym.RewardWrapper):
         self.use_weight_decay = cfg.use_weight_decay
         self.intrinsic_weight_decay = cfg.eta_intrinsic
         self.A = cfg.eta_intrinsic / 100
-        self.B = cfg.ad_B
+        self.B = cfg.pd_B
         self.K = cfg.eta_intrinsic
         self.F = cfg.total_timesteps
         self.t = 1
