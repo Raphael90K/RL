@@ -4,6 +4,7 @@ import torch.nn as nn
 from stable_baselines3.common.callbacks import BaseCallback
 from torch import optim, device
 
+# RNDConvModel is a PyTorch model that implements the Random Network Distillation (RND) algorithm for intrinsic motivation in reinforcement learning.
 class RNDConvModel(nn.Module):
     def __init__(self, obs_shape, next_obs_buffer, output_dim=256, feature_dim=256):
         super().__init__()

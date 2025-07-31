@@ -5,7 +5,7 @@ from src.envs.action_wrapper import SaveActionWrapper
 from src.envs.observation_wrapper import SaveObsWrapper
 from src.envs.reward_wrapper import IntrinsicRewardWrapper
 
-
+# This function creates a gym environment with the specified ID, model, and configuration.
 def make_env(id, model, cfg, render_mode=None):
     env = gym.make(id, render_mode=render_mode, max_steps=cfg.max_steps)
     env = RGBImgPartialObsWrapper(env)

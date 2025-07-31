@@ -10,7 +10,7 @@ cfg = Config()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-
+# IntrinsicRewardWrapper is a custom reward wrapper for gym environments that computes intrinsic rewards based on the observations and actions taken in the environment.
 class IntrinsicRewardWrapper(gym.RewardWrapper):
     def __init__(self, obs_env, act_env, model, cfg):
         super().__init__(obs_env)

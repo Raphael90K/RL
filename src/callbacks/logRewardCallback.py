@@ -1,6 +1,7 @@
 from stable_baselines3.common.callbacks import BaseCallback
 import numpy as np
 
+# Callback to log intrinsic and extrinsic rewards per episode
 class LogIntrinsicExtrinsicRewardsCallback(BaseCallback):
     def __init__(self, reward_wrapper, verbose=0):
         super().__init__(verbose)

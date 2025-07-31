@@ -1,7 +1,7 @@
 import gymnasium as gym
 from gymnasium import spaces
 
-
+# This wrapper is used to save the last action taken in the environment.
 class SaveActionWrapper(gym.ActionWrapper):
     def __init__(self, env, allowed_actions: list):
         super().__init__(env)

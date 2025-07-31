@@ -1,7 +1,7 @@
 from stable_baselines3.common.callbacks import BaseCallback
 import numpy as np
 
-
+# Callback to track unique positions visited by the agent in each environment
 class UniquePositionCallback(BaseCallback):
     def __init__(self, verbose=1):
         super().__init__(verbose)

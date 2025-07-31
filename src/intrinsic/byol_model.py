@@ -7,7 +7,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from stable_baselines3.common.callbacks import BaseCallback
 
-
+# BYOLExploreModel is a PyTorch model that implements the Bootstrap Your Own Latent (BYOL) algorithm for exploration in reinforcement learning.
 class BYOLExploreModel(nn.Module):
     def __init__(self, obs_shape, obs_buffer, next_obs_buffer, act_buffer, action_dim=3,
                  ema_decay=0.99, feature_dim=256, device="cuda"):

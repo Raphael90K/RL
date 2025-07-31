@@ -5,7 +5,7 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from stable_baselines3.common.callbacks import BaseCallback
 
-
+# ICMModel is a PyTorch model that implements the Intrinsic Curiosity Module (ICM) for exploration in reinforcement learning.
 class ICMModel(nn.Module):
     def __init__(self, obs_shape, obs_buffer, next_obs_buffer, act_buffer, action_dim, feature_dim=256, beta=0.2):
         super().__init__()
