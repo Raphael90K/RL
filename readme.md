@@ -1,3 +1,10 @@
+# Vertiefung Künstliche Intelligenz: Reinforcement Learning
+Sommersemester 2025
+
+Curiostiy-driven Reinforcement Learning with RND, ICM und BYOL-explore
+
+## Project Structure
+
 <pre> 
 src/ 
 ├── config.py 
